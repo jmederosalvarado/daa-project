@@ -1,0 +1,199 @@
+\documentclass[spanish]{llncs}
+
+\usepackage[utf8]{inputenc}
+
+\usepackage{amsmath}
+
+\usepackage{xcolor}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.97}
+
+\usepackage{minted}
+\usemintedstyle{friendly}
+\setminted {
+	linenos = true,
+	bgcolor = backcolour
+}
+
+\usepackage{dsfont}
+\newcommand*{\Z}{\mathds{Z}}
+
+\begin{document}
+
+\title{Aproximación al Problema del Viajante con Algoritmo Vecino más Cercano}
+
+\author{Jorge Mederos}
+\authorrunning{J. Mederos}
+
+\institute{Universidad de La Habana}
+
+\maketitle
+
+\section{El Problema}
+
+El problema del viajante es un problema bastante clasico, la idea consiste
+en dadas $n$ ciudades, y un costo de viajar de una ciudad a otra, encontrar el
+recorrido que pasa por todas las ciudades y tiene costo mínimo.
+
+La entrada es un grafo $K_n$ donde para cada arista $(i,j)$ existe $d(i,j)$,
+distancia entre los nodos $i$ y $j$.
+
+El problema del viajante metrico, es una variante del problema anterior que cumple
+que la funcion $d$ es una metrica, es decir cumple con la desigualdad triangular,
+es simetrica y $d(i,i)=0$.
+
+\paragraph*{Fuente.}Este problema y su solucion se puede encontrar
+en el articulo \emph{AN ANALYSIS OF SEVERAL HEURISTICS FOR THE TRAVELING
+SALESMAN PROBLEM} de los autores \emph{Daniel J. Rosenkrantz}, \emph{Richard E. Stearns}
+y \emph{Phillip M. Lewis}.
+
+\section{Algoritmo del Vecino mas Cercano}
+
+La idea de este algoritmo es bastante sencilla
+
+\begin{enumerate}
+	\item Comienza en un nodo arbitrario
+	\item Elige el nodo mas cercano al ultimo seleccionado, y que todavía no forme 
+	      parte del camino
+	\item Cuando todos los nodos se hayan añadido al camino, añada una arista del
+	      ultimo nodo al primero
+\end{enumerate}
+
+Se asume que si hay empates en el paso 2, estos se resuelven arbitrariamente.
+
+Note que este algoritmo puede ser programado en $O(n^2)$, donde $n$ es la
+cantidad de nodos, esto es linear en el tamaño de la entrada si se asume que la
+entrada es una lista de todas las distancias.
+
+\inputminted{python}{code.py}
+
+Sea $NN$ la longitud del recorrido obtenido por el algoritmo del Vecino mas Cercano
+y $OPT$ la longitud del recorrido optimo.
+
+\begin{lemma}
+	\label{lemma:1}
+	Supongamos que para un grafo de $n$ nodos $(N,d)$ existe una forma de asignarle
+	a cada nodo $p$ un numero $l_p$ tal que las siguientes dos condiciones se cumplan:
+	\begin{enumerate}
+		\item $d(p,q) \ge min(l_p,l_q)$ para todo nodo p y q.
+		\item $l_p \le \frac{1}{2}*OPT$ para todo nodo p.
+	\end{enumerate}
+	Entonces 
+	$$\sum_{p \in N} l_p \le \frac{1}{2}(\lceil log_2(n) \rceil + 1)$$
+\end{lemma}
+
+\begin{proof}
+	Podemos asumir, sin pérdida de generalidad, que el conjunto de nodos
+	$N = \{i \vert 1 \le i \le n\}$ y que $l_i \ge l_j$ siempre que $i \le j$.
+	La clave es la prueba de la siguiente desigualdad:
+	\begin{equation}
+		\label{eq:lemma:key}
+		OPT \ge 2 * \sum_{i=k+1}^{min(2k,n)} l_i \qquad \forall_{k, 1 \le k \le n}
+	\end{equation}
+
+	Para probar \eqref{eq:lemma:key}, sea H el subgrafo completo definido sobre
+	el conjunto de nodos $\{i \vert 1 \le i \le min(2k,n)\}$.
+
+	Sea $T$ el recorrido de $H$ que visita los nodos de $H$ en el mismo orden
+	que los nodos son visitados en el recorrido optimo del grafo original. Sea
+	$LEN$ la longitud de $T$. Por la desigualdad triangular, cada arista $(b,c)$
+	de $T$ debe tener una longitud que es menor o igual que el camino de $b$ a $c$
+	usado en el recorrido optimo. Dado que las aristas de $T$ suman $LEN$ y los
+	caminos correspondientes en el grafo original suman $OPT$, podemos concluir que
+	\begin{equation}
+		\label{eq:opt-len}
+		OPT \ge LEN
+	\end{equation}
+
+	Por la primera condición del lema~\ref{lemma:1}, por cada $(i,j)$ en $T$,
+	$d(i,j) \ge min(l_i,l_j)$, por tanto,
+	\begin{equation}
+		\label{eq:len-sums}
+		LEN \ge \sum_{(i,j) \in T} min(l_i,l_j) = \sum_{i \in H} a_il_i
+	\end{equation}
+	donde $a_i$ es el numero de aristas $(i,j)$ en $T$ para las cuales $i>j$
+	(y por tanto $l_i = min(l_i,l_j)$).
+
+	Observese que cada $a_i$ es a lo sumo 2 (porque $i$ es extremo de solo
+	2 aristas en el recorrido) y la suma de los $a_i$ es el numero de aristas
+	en $T$. Como $k$ es al menos la mitad del numero de aristas en $T$, si asumimos
+	que los $k$ $l_i$ mas grandes tienen $a_i=0$ y los restantes $min(2k,n)-k$ valores
+	$l_i$ tienen $a_i=2$, entonces:
+	\begin{equation}
+		\label{eq:lb}
+		\sum_{i \in H} a_il_i \ge 2 * \sum_{i=k+1}^{min(2k,n)}l_i
+	\end{equation}
+	
+	Notese que en caso de que los $k$ mayores $l_i$ no tengan todos $a_i=0$, entonces
+	dado que la suma de todas las aristas de $H$ se mantiene la misma, y $ai \le 2$,
+	el lado derecho de \eqref{eq:lb} solo haría disminuir, mateniendose la desigualdad.
+	Luego a partir de \eqref{eq:opt-len}, \eqref{eq:len-sums} y \eqref{eq:lb} se obtiene
+	\eqref{eq:lemma:key}.
+
+	Ahora se suma la desigualdad \eqref{eq:lemma:key} para todos los valores de $k$ iguales a
+	una potencia de 2 menor que $n$, es decir:
+	\begin{equation*}
+		\sum_{j=0}^{\lceil log_2(n) \rceil - 1} OPT \ge \sum_{j=0}^{\lceil log_2(n) \rceil - 1} 2 * \sum_{i=2^j+1}^{min(2^{j+1},n)}l_i
+	\end{equation*}
+	la cual se reduce a:
+	\begin{equation}
+		\label{eq:sum}
+		\lceil log_2(n) \rceil * OPT \ge 2*\sum_{i=2}^n l_i
+	\end{equation}
+
+	La segunda condicion del lema~\ref{lemma:1} implica $OPT \ge 2*l_1$
+	la cual combinada con \eqref{eq:sum} dan conclusión al lema~\ref{lemma:1}.
+\end{proof}
+
+\begin{theorem}
+	\label{theo:1}
+	Para un grafo del problema del viajante con $n$ nodos:
+	\begin{equation}
+		\frac{NN}{OPT} \le \frac{1}{2}*(\lceil log_{2}(n) \rceil + 1)
+	\end{equation}
+\end{theorem}
+
+\begin{proof}
+	Para cada nodo $p$, sea $l_p$ la distancia de la arista que va del nodo $p$
+	al proximo nodo seleccionado por el algoritmo como vecino mas cercano a $p$.
+
+	Si el nodo $p$ fue seleccionado primero que el nodo $q$, entonces $q$ fue un
+	candidato a ser el vecino disponible mas cercano de $p$. Esto significa que la
+	arista $(p,q)$ no es mas corta que la arista seleccionada y por tanto:
+	\begin{equation}
+		\label{eq:lemma:cond-a1}
+		d(p,q) \ge l_p
+	\end{equation}
+	
+	De lo contrario, si $q$ fue seleccionado primero que $p$:
+	\begin{equation}
+		\label{eq:lemma:cond-a2}
+		d(p,q) \ge l_q
+	\end{equation}
+	
+	Como uno de los nodos fue seleccionado primero que el otro, debe cumplirse alguna de
+	las ecuaciones \eqref{eq:lemma:cond-a1} o \eqref{eq:lemma:cond-a2} y por tanto se cumple
+	la primera condicion del lema~\ref{lemma:1}.
+
+	Para demostrar la segunda condicion, basta probar que sea la arista $(p,q)$
+	\begin{equation}
+		\label{eq:lemma:cond-b}
+		d(p,q) \le \frac{1}{2}*OPT
+	\end{equation}
+	
+	El recorrido optimo se puede considerar que consiste de dos partes disjuntas, cada una de
+	ellas es un camino entre los nodos $p$ y $q$. De la desigualdad triangular, la longitud
+	de cualquier camino entre $p$ y$q$ no puede ser menor que $d(p,q)$, cumpliéndose asi
+	\eqref{eq:lemma:cond-b}.
+
+	Como los $l_p$ son las longitudes de las aristas que comprenden el recorrido,
+	entonces:
+	\begin{equation}
+		\label{eq:lp-nn}
+		\sum_{p \in N} l_p = NN
+	\end{equation}
+
+	La conclusión del lema~\ref{lemma:1} junto con \eqref{eq:lp-nn} implican el cumplimiento del
+	teorema~\ref{theo:1}.
+\end{proof}
+
+\end{document}

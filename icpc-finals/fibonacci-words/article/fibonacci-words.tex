@@ -1,0 +1,130 @@
+\documentclass{article}
+
+\usepackage{fibonacci-words}
+
+\begin{document}
+
+\begin{titlepage}
+	\title{\textbf{Fibonacci Words}}
+	\author{Jorge Mederos Alvarado}
+	\date{}
+								
+	\maketitle
+				
+	\begin{statement}
+		La secuencia de palabras de Fibonacci se define como
+		\begin{equation*}
+			F(n)=
+			\begin{cases}
+				0               & \text{si $n = 0$}  \\
+				1               & \text{si $n = 1$}  \\
+				F(n-1) + F(n-2) & \text{si $n\ge 2$} 
+			\end{cases}
+		\end{equation*}
+		Aquí $+$ denota la concatenación de strings. El problema 
+		consiste en dado un patrón $p$ y un entero $n$, cuantas veces aparece el 
+		patrón en $F(n)$.
+															
+		\paragraph*{Entrada.} La primera línea de cada caso de prueba contendrá un 
+		entero n ($0\le n\le 100$). La segunda línea contiene el patrón $p$. EL 
+		patrón es no vacío y tiene una longitud de a lo sumo $10^5$ caracteres.
+															
+		\paragraph*{Salida.} Para cada caso de prueba imprima una línea que contenga 
+		el número del caso, seguido por el número de ocurrencias del patrón $p$ en
+		$F(n)$. Las ocurrencias pueden solaparse. El número de ocurrencias será 
+		menor que $2^{63}$.
+								    
+		\smallskip
+		\begin{center}
+			\begin{tabular}{ | m{13em} | m{13em} | } 
+				\hline
+				Ejemplos de Entrada & Ejemplos de Salida          \\
+				\hline
+				6                   & Case 1: 5                   \\ 
+				10                  & Case 2: 8                   \\ 
+				7                   & Case 3: 4                   \\ 
+				10                  & Case 4: 4                   \\ 
+				6                   & Case 5: 7540113804746346428 \\ 
+				01                  &                             \\ 
+				6                   &                             \\ 
+				101                 &                             \\ 
+				96                  &                             \\ 
+				10110101101101      &                             \\ 
+				\hline
+			\end{tabular}
+		\end{center}
+	\end{statement}
+\end{titlepage}
+
+\section*{Solución}
+
+La primera observación que se debe hacer es que no es factible 
+guardar en memoria la cadena $F(n)$, dado que para $n=100$ la 
+cadena tiene tamaño $fib(n)$. Luego es necesario buscar otra 
+alternativa. Es posible observar sin embargo que la cantidad de 
+ocurrencias del patrón en $F(n)$ es igual a la cantidad de 
+ocurrencias del mismo en $F(n-1)$, más la cantidad de ocurrencias 
+en $F(n-2)$ sumándo además las ocurrencias que tienen una parte en 
+una cadena y una parte en la otra.
+
+Luego, note que el rango donde pueden estar estas ocurrencia que 
+tienen parte en ambas cadenas es en los últimos $m = \abs{p}-1$ 
+caracteres de $F(n-1)$ y los primeros $m$ caracteres de $F(n-2)$. 
+Luego este rango si es posible guardarlo en memoria, es decir 
+necesitamos los prefijos y sufijos de tamaño $m$ de estas cadenas.
+
+\begin{theorem}
+	Denótese la cantidad de ocurrencias del patrón $p$ en una 
+	cadena $s$ como $P(s)$, y $Suf_k(s), Pref_k(s)$ como el sufijo 
+	o prefijo, respectivamente, de tamaño $k$ de la cadena $s$.
+	\begin{align*}
+		P(F(n)) & = P(F(n-1)) + P(F(n-2)) + P(C)       \\
+		C       & = {Suf}_m(F(n-1)) + {Pref}_m(F(n-2)) \\
+	\end{align*}
+\end{theorem}
+
+\begin{proof}
+	Es fácil ver que toda ocurrencia del patrón $p$ en $F(n)$, está 
+	o completamente contenida en $F(n-1)$, completamente contenida 
+	en $F(n-2)$ o tiene partes en ambos lados. Si $p$ tiene partes 
+	en ambos lados entonces un prefijo de $p$ ocurre en $F(n-1)$ y 
+	un prefijo de $p$ ocurre en $F(n-2)$, como $p$ tiene al menos 
+	un caracter en $F(n-1)$ y uno en $F(n-2)$ entonces $p$ tiene a 
+	lo sumo $m$ caracteres en $F(n-1)$ y a lo sumo $m$ caracteres 
+	en $F(n-2)$. Luego cada ocurrencia compartida de $p$ a ambos 
+	lados, necesariamente ocurre en la cadena formada por
+	$Suf_m(F(n-1))$ concatenada con $Pref(F(n-2))$. De igual manera 
+	cada ocurrencia de $p$ en esta cadena implicaría una ocurrencia 
+	en $F(n)$ que tiene caracteres a ambos lados.
+			
+\end{proof}
+
+\inputminted[firstline=10, linenos=false]{python}{code.py}
+
+\begin{theorem}
+	El algoritmo anterior tiene complejidad temporal
+	$O(n*\abs{p})$.
+\end{theorem}
+
+\begin{proof}
+	El costo del algoritmo anterior está dado por el costo del 
+	ciclo, este realiza $n-1$ iteraciones, en cada una de estas 
+	iteraciones se realiza un llamado a \emph{kmp} para calcular la 
+	cantidad de ocurrencias del patrón en la cadena $center$, la 
+	cual tiene longitud a lo sumo $2(\abs{p}-1)$, por lo que este 
+	cómputo tendría costo $O(\abs{p})$. Se realizan dentro del 
+	ciclo también operaciones de concatenación entre strings, las 
+	cuales dado que dichos strings tienen a lo sumo longitud
+	$\abs{p}-1$, pueden tener costo hasta $O(\abs{p})$. Por tanto 
+	el ciclo tendría costo $O(n*\abs{p})$ y también lo tendría el 
+	algoritmo anterior.
+			
+\end{proof}
+
+\begin{note}
+	Durante el análisis anterior se considera que el costo del algoritmo \emph{kmp} 
+	para encontrar la cantidad de ocurrencias de un patrón $p$ en un texto $s$ es
+	$O(\abs{s}+\abs{p})$.
+\end{note}
+
+\end{document}

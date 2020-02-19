@@ -1,0 +1,48 @@
+\ProvidesPackage{infiltration}
+
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[hidelinks]{hyperref}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+\newcommand{\abs}[1]{\left \vert #1 \right \vert}
+\newcommand{\ceil}[1]{\left \lceil #1 \right \rceil}
+\newcommand{\floor}[1]{\left \lfloor #1 \right \rfloor}
+\newcommand{\parenthize}[1]{\left( #1 \right)}
+
+\renewcommand\qedsymbol{$\blacksquare$}
+
+\theoremstyle{definition}
+\newtheorem*{statement}{Problema}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definici\'on}
+
+\theoremstyle{definition}
+\newtheorem*{note}{Nota}
+
+\newtheorem*{theorem*}{Teorema}
+\newtheorem{theorem}{Teorema}
+
+\newtheorem*{lemma*}{Lema}
+\newtheorem{lemma}{Lema}
+
+\usepackage{xcolor}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.97}
+
+\usepackage{minted}
+\usemintedstyle{friendly}
+\setminted {
+	linenos = true,
+	bgcolor = backcolour
+}
+
+\usepackage{dsfont}
+\newcommand*{\Z}{\mathds{Z}}
+
+\usepackage{array}
+
+\usepackage{csquotes}

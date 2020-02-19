@@ -1,0 +1,159 @@
+\documentclass[../np-approximations.tex]{subfiles}
+ 
+\begin{document}
+
+\section{Hardness of Approximation}
+
+\subsection{Gap Reductions}
+
+\begin{definition}
+	Sea $\Pi_0$ un problema \emph{np-completo}, $\Pi_1$ un problema 
+	de minimización. Una reducción que introduce un vacío
+	(\emph{gap-introducing reduction}) de $\Pi_0$ a $\Pi_1$, dado 
+	una instancia $x$ de $\Pi_0$ devuelve en tiempo polinomial una 
+	instancia $y$ de $\Pi_1$ tal que, siendo $f$ y $\alpha$ 
+	funciones:
+	\begin{itemize}
+		\item Si $x$ es una instancia \emph{sí} de $\Pi_0$, 
+		      entonces $OPT(y) \le f(x)$
+		\item Si $x$ es una instancia \emph{no} de $\Pi_0$, 
+		      entonces $OPT(y) > \alpha(\vert x \vert)*f(x)$
+	\end{itemize}
+\end{definition}
+
+\begin{note}
+	La definición anterior es análoga para problemas de 
+	maximización, solo es necesario cambiar los signos de las 
+	desigualdades.
+\end{note}
+
+Observe que la definición anterior plantea que de existir una 
+reducción que cumpla estas características, de un problema
+\emph{np-completo} $\Pi$ a un problema de optimización, entonces 
+para dicho problema de optimización no podría existir un algoritmo 
+polinomial con factor de aproximación de $\alpha$, de lo contrario 
+este algoritmo permitiría distinguir las instancias \emph{sí} de 
+las \emph{no} en tiempo polinomial, lo cual, si $P \neq NP$, es 
+imposible dado que $\Pi$ es \emph{np-completo}.
+
+Una vez obtenida una reducción que indroduzca un vacío
+(\emph{gap-introducing reduction}), sería interesante poder 
+extender este resultado a otros problemas, para ello véase la 
+siguiente definición.
+
+\begin{definition}
+	Sean $\Pi_1$, $\Pi_2$ problemas de minimización. Una reducción 
+	que preserva el vacío (\emph{gap-preserving reduction}) de 
+	$\Pi_1$ a $\Pi_2$, dado una instancia $x$ de $\Pi_1$ devuelve 
+	en tiempo polinomial una instancia $y$ de $\Pi_2$ tal que, 
+	siendo $f_1$,$f_2$, $\alpha$ y $\beta$ funciones:
+	\begin{itemize}
+		\item Si $OPT(x) \le f_1(x)$, entonces
+		      $OPT(y) \le f_2(y)$
+		\item Si $OPT(x) > \alpha(\vert x \vert)*f_1(x)$, entonces
+		      $OPT(x) > \beta(\vert y \vert)*f_2(x)$
+	\end{itemize}
+\end{definition}
+
+\begin{note}
+	La definición anterior solo considera los casos en que $\Pi_1$ 
+	y $\Pi_2$ son problemas de minimización, sin embargo, esta es 
+	análoga para el resto de los casos, solo es necesario cambiar 
+	los signos de las desigualdades.
+\end{note}
+
+Observe que de la composición de un \emph{gap-introducing reduction}
+de un problemas $\Pi_0$ a un problema $\Pi_1$, con un \emph
+{gap-preserving reduction} de $\Pi_1$ a un problema $\Pi_2$, se 
+obtendría un \emph{gap-introducing reduction} de $\Pi_0$ a $\pi_2$. 
+Mostrándose así que $\Pi_2$ no es aproximable en un factor de 
+$\beta$.
+
+\subsection{Ejemplos}
+
+\begin{theorem}
+    Suponiendo $P \neq NP$, no existe una función $\alpha(n)$, 
+    calculable en tiempo polinomial, tal que $TSP$ pueda ser 
+    aproximado en un factor de $\alpha(n)$.
+\end{theorem}
+
+\begin{proof}
+	Para probar que el \emph{TSP} métrico es inaproximable por un 
+	factor de $\alpha(n)$, se realizará un
+	\emph{grap-introducing reduction} desde el problema
+	\emph{Ciclo de Hamilton}. La reducción que se realizará, 
+	transformará un grafo $G$ de $n$ vértices en un grafo completo 
+	$G'$ con pesos en las aristas, y cumplirá lo siguiente:
+	\begin{itemize}
+		\item si $G$ tiene un ciclo de Hamilton, entonces el costo 
+		      óptimo del $TSP$ en $G'$ es n.
+		\item si $G$ no tiene un ciclo de Hamilton, entonces el 
+              costo óptimo del $TSP$ en $G'$ es mayor que
+              $\alpha(n)*n$.
+	\end{itemize}
+	Observe que en el primer caso un algoritmo con factor de 
+	aproximación $\alpha(n)$ encontraría una solución de costo a lo 
+	sumo $\alpha(n)*n$, y en el segundo caso encontraría una 
+	solución de costo mayor que $\alpha(n)*n$, permitiendo de esta 
+	manera resolver si $G$ contiene o no un ciclo de Hamilton.
+	    
+	Sea $G=(V,E)$ una instancia del problema de
+	\emph{Ciclo de Hamilton}. Construya el grafo
+	$G'=(V,E')$ con costos en las aristas dados por,
+	\begin{equation*}
+		cost(u,v)=
+		\begin{cases}
+			1           & \text{si $(u,v) \in E$}    \\
+			\alpha(n)*n & \text{si $(u,v) \notin E$} \\
+		\end{cases}
+	\end{equation*}
+    Note que si $G'$ tiene un ciclo de Hamilton, este tiene 
+	costo $n$. Por otro lado, si $G$ no tiene ciclo de Hamilton, 
+	cualquier recorrido en $G'$ debe usar al menos una arista de 
+	costo $\alpha(n)*n$ y por tanto tiene costo mayor que
+	$\alpha(n)*n$.
+\end{proof}
+
+\begin{theorem}
+	Suponiendo $P \neq NP$, no existe un algoritmo en tiempo 
+	polinomial que logre un factor de aproximación de $2-\epsilon$, 
+	$\epsilon > 0$, para el k-centers métrico.
+\end{theorem}
+
+\begin{proof}
+	Un \emph{Conjunto Dominante} en un grafo $G=(V,E)$ es un 
+	subconjunto $S \subset U$ tal que todo vértice en $V - S$ es 
+	adyacente a al menos un vértice de $S$. Sea $dom(G)$ el tamaño 
+	del conjunto dominante de menor cardinalidad en $G$, calcular 
+	$dom(G)$ es NP-Completo.
+		
+	    
+	Para probar que el k-centers métrico es inaproximable por un 
+	factor de $2-\epsilon$, se realizará un
+	\emph{grap-introducing reduction} desde
+	\emph{Conjunto Dominante}. Sea $G=(V,E), k$ una instancia del 
+	problema de \emph{Conjunto Dominante}. Construya el grafo
+	$G'=(V,E')$ con costos en las aristas dados por,
+	\begin{equation*}
+		cost(u,v)=
+		\begin{cases}
+			1 & \text{si $(u,v) \in E$}    \\
+			2 & \text{si $(u,v) \notin E$} \\
+		\end{cases}
+	\end{equation*}
+	Claramente $G'$ satisface la desigualdad triangular. Esta 
+	reducción además cumple lo siguiente:
+	\begin{itemize}
+		\item si $dom(G) \le k$, entonces $G'$ tiene un conjunto de 
+		      centros de costo 1.
+		\item si $dom(G) > k$, entonces el conjunto de centros 
+		      óptimos en $G'$ tiene costo al menos 2.
+	\end{itemize}
+	Observe que en el primer caso un algoritmo con factor de 
+	aproximación $2-\epsilon$ con $\epsilon>0$ produciría una 
+	solución de costo 1. Permitiendo así distinguir entre las dos 
+	posibilidades, resolviendo el problema de
+	\emph{Conjunto Dominante}.
+\end{proof}
+
+\end{document}

@@ -1,0 +1,149 @@
+\documentclass{article}
+
+\usepackage{infiltration}
+
+\begin{document}
+
+\title{\textbf{Fibonacci Words}}
+\author{Jorge Mederos Alvarado}
+\date{}
+												
+\maketitle
+								
+\begin{statement}
+	Se desea infiltrar agentes en las células de una organización, de manera que 
+	se tome control sobre esta. Esta organización (\emph{ACM}) tiene una 
+	estructura de comando bien compleja, lo cual hace la infiltración bastante 
+	complicada.
+									
+	La estructura de comando del ACM consiste en varias células. Para cada par 
+	de células A y B, o A controla a B, o viceversa. Pero esta relación de 
+	"control" puede ser cíclica, es decir, A puede controlar B, quien a su vez 
+	puede controlar C y este último controlar a A.
+									
+	Posemos mandar agentes a infiltrarse en cualquier célula en particular, lo 
+	cual nos da control sobre esta célula y aquellas a las que controle esta, 
+	pero sobre más ninguna. En el ejemplo anterior, infiltrarse en A daría 
+	control sobre B pero no sobre C.
+									
+	Para una infiltración exitosa debemos tener control sobre todas sus células. 
+	Pero se desea invertir la menor cantidad de recursos posibles, luego su 
+	misión es averiguar cual es la menor cantidad de células que necesitan 
+	infiltrarse para tomar control sobre la organización.
+																						
+	\paragraph*{Entrada.} La primera línea de cada caso de prueba contendrá un 
+	entero n ($0\le n\le 75$) con el número de células. Cada una de las 
+	siguientes $n$ líneas contiene un string binario de longitud $n$, donde el 
+	i-ésimo caracter de la j-ésima línea nos dirá si la célula $j$ controla a la 
+	célula $i$. El i-ésimo caracter de la i-esima línea es 0, y exactamente uno 
+	entre en i-ésimo de la j-ésima linea y el j-esimo de la i-ésima línea es 1.
+	
+	\paragraph*{Salida.} Para cada caso de prueba imprima una línea que contenga 
+	el número $m$ del caso, seguido por el menor número de células que deben ser 
+	infiltradas para tomar control. Luego muestre $m$ números, mostrando la 
+	lista de células que debe infiltrarse.
+																	    
+	\smallskip
+	\begin{center}
+		\begin{tabular}{ | m{13em} | m{13em} | } 
+			\hline
+			Ejemplos de Entrada & Ejemplos de Salida \\
+			\hline
+			2                   & Case 1: 1 2        \\ 
+			00                  & Case 2: 2 1 2      \\ 
+			10                  & Case 3: 2 2 3      \\ 
+			3                   &                    \\ 
+			010                 &                    \\ 
+			001                 &                    \\ 
+			100                 &                    \\ 
+			5                   &                    \\ 
+			01000               &                    \\ 
+			00011               &                    \\ 
+			11001               &                    \\ 
+			10100               &                    \\ 
+			10010               &                    \\ 
+			\hline
+		\end{tabular}
+	\end{center}
+\end{statement}
+\bigskip
+
+\section*{Solución}
+
+Es posible observar que el grafo que representa la estructura de la organización es 
+un torneo. Y estamos buscando un conjunto minimal, tal que para todo vértice $v$ del 
+grafo que no pertenezca a ese conjunto, exista una arista desde uno de los vértices 
+del conjunto hacia $v$. Esto es equivalente a encontrar un Conjunto Dominante (\emph
+{Dominating Set}) minimal en el grafo torneo. Este problema puede mostrarse que es 
+$np-completo$, luego es improbable que se pueda encontrar un algoritmo eficiente 
+para resolverlo. Luego pudiera intuirse que será necesario realizar una búsqueda 
+exhaustiva sobre los posibles conjuntos dominantes para encontrar el minimal. Sin 
+embargo, como se verá a continuación, es posible diseñar un algoritmo greedy que 
+minimice suficiente espacio de búsqueda, como para que enumerar todas las soluciones 
+sea factible.
+
+\begin{theorem}
+	En todo torneo $T$ de a lo sumo $2^{n+1}-2$ vértices, existe un 
+	conjunto dominante de tamaño $n$.
+\end{theorem}
+
+\begin{proof}
+	Procedamos por inducción. Para $n=1$, cualquier torneo de $2^{n+1}
+	-2=2$ vértices, tiene un vértice que domina al otro. Suponga que para 
+	$n=k$ se cumple, probemos para $n=k+1$. Dado que $T$ es un torneo, se 
+	cumple que,
+	$$\sum_{v\in V(T)} outdeg(v) = \frac{(2^{n+1}-2)(2^{n+1}-3)}{2}$$
+	luego el vértice $u$ de mayor outdegree cumple $outdeg(u)$ debe ser 
+	al menos $\frac{(2^{n+1}-3)}{2}$, luego al menos $2^n-1$. Quitemos 
+	dicho vértice junto con todos los vértices a los que el domina. El 
+	grafo resultante es fácil ver que es un torneo. Luego la cantidad de 
+	vértices restantes en el grafo es de
+	\begin{equation*}
+		2^{n+1}-2-1-(2^n-1) = 2^n - 2
+	\end{equation*}
+	Por hipótesis de inducción existe un conjunto de tamaño $n-1$ que 
+	domina el grafo resultante. Si a ese conjunto añadimos el vértice que 
+	eliminamos, obtenemos un conjunto dominante de tamaño $n$ para el 
+	grafo original.
+	
+\end{proof}
+
+Observe que dado que nuestro grafo tiene a lo sumo $75\le 2^{6+1}-2=128$, entonces 
+en este se puede encontrar un conjunto dominante de tamaño a lo sumo $6$. El 
+algoritmo que diseñaremos para obtener este conjunto dominante se basará en el 
+procedimiento seguido para demostra el teorema anterior. Una vez obtenido un 
+conjunto dominante de cardinalidad $6$ o menor, se explorarán todos los conjuntos de 
+cardinalidad a lo sumo la del obtenido, para tratar de mejorar el conjunto ya 
+obtenido. De esta manera disminuiríamos considerablemente el espacio de esta 
+búsqueda.
+
+\inputminted[firstline=13,linenos=false]{python}{code.py}
+
+\begin{theorem}
+	El algoritmo anterior tiene costo
+	$$O\parenthize{n^2log(n)\sum_{i=1}^{log(n)-1}i^2 \binom{n}{i}}$$
+\end{theorem}
+
+\begin{proof}
+	El paso greedy del agoritmo se puede asegurar que converge en $O(log(n))$ 
+	iteraciones, dado que en cada iteración toma de los vértices que no son
+	dominados, el de mayor outdegree. Este tiene un outdegree de al menos
+	$\ceil{\frac{n-1}{2}}$, luego de eliminarlo y a todos los dominados por el,
+	quedan en el grafo a lo sumo $\ceil{\frac{n-1}{2}}$ vértices, dado que en
+	cada paso se reduce la cantidad de vértices por dominar a la mitad, entonces en 
+	$O(log(n))$ pasos todos los vértices son dominados. Hay un factor de $n$ 
+	operaciones en cada iteración que esta dado por buscar el vértice con mayor
+	outdegree. Luego se obtendría un costo de $O(nlog(n))$.
+
+	El paso de búsqueda exhaustiva tiene que buscar para todas las combinaciones de 
+	tamaño $i$ de los $n$ vértices, con $k=1,2,\dots,k-1$, donde $k$ es la 
+	cardinalidad del conjunto dominante encontrado por el greedy, generar cada 
+	combinación tiene costo $i$ y son $\sum_{i=1}^{k-1}\binom{n}{i}$. Para cada 
+	combinación, analizar si esta es un conjunto dominante nos toma $O(i*n)$ 
+	iteraciones. Luego este paso tendría costo,
+	$$O\parenthize{n\sum_{i=1}^{log(n)-1}i^2 \binom{n}{i}}$$
+
+\end{proof}
+
+
+\end{document}

@@ -1,0 +1,37 @@
+\documentclass{article}
+
+\usepackage{np-approximations}
+
+\addbibresource{bibliography.bib}
+
+\begin{document}
+
+\begin{titlepage}
+	\title{\textbf{Aproximaciones en tiempo polinomial a problemas NP-Completos}}
+	\author{Jorge Mederos Alvarado}
+	\date{}
+				
+	\maketitle
+	\thispagestyle{empty}
+		
+	\tableofcontents
+\end{titlepage}
+
+\clearpage
+\subfile{sections/combinatorial.tex}
+
+\clearpage
+\subfile{sections/linear-programming.tex}
+
+\clearpage
+\subfile{sections/hardness.tex}
+
+\clearpage
+\subfile{sections/problems.tex}
+
+\clearpage
+\nocite{*}
+\addcontentsline{toc}{section}{Referencias}
+\printbibliography
+
+\end{document}

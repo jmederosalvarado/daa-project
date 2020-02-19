@@ -1,0 +1,562 @@
+\documentclass[../np-approximations.tex]{subfiles}
+ 
+\begin{document}
+
+\section{Algoritmos Combinatorios}
+
+\subsection{Enfoque Greedy}
+
+Uno de los primeros enfoques que se intentan cuando diseña un
+algoritmo para un problema de optimización es algún tipo de 
+estrategia greedy. Estas en muchos casos no funcionan, sin embargo 
+analizar porque este enfonque no funciona puede ser muy revelar 
+información sobre la estructura del problema. En varias ocasiones, 
+como veremos a continuación, un enfoque greedy relativamente 
+sencillo, aunque no resuelve el problema puede llevar a respuestas 
+que cercanas a la óptima.
+
+\subsubsection{Set Cover}
+
+\begin{statement}
+	Dado un universo $U$ de n elementos, una colección de 
+	subconjuntos
+	de $U$, $S={S_1, S_2 \dots S_k}$, y una funcion de costo
+	$c:S \rightarrow Q^+$, encuentre una subcolección de costo
+	mínimo de $S$ que cubra todos los elementos de $U$.
+\end{statement}
+    
+Se atacará el problema mediante la técnica greedy, la idea del
+algoritmo es ir seleccionando un conjunto a la vez, eligiendo 
+siempre aquel que implique un mayor progreso hacia el objetivo.
+Una manera rasonable de definir el progreso que aporta un conjunto  
+es la relación entre su costo y la cantidad de elementos nuevos que 
+aporta a la solución actual, dado que es necesario mantener un 
+balance entre ambas magnitudes.
+    
+\bigskip
+\begin{tcolorbox}
+	\textbf{Algoritmo (Greedy Set Cover)}
+	\begin{enumerate}
+		\item $C \leftarrow \emptyset$
+		\item Mientras $C \neq U$:
+		      \begin{enumerate}
+		      	\item Encuentre el conjunto de menor relación entre costo y cantidad de elementos cubiertos, digase $S$.
+		      	\item Sea $\alpha=\frac{c(S)}{\abs{S-C}}$, la relación costo precio de $S$.
+		      	\item Elija $S$, y por cada $e\in S-C$, denote establezca $price(e)=\alpha$
+		      	\item $C \leftarrow C \cup S$
+		      \end{enumerate}
+		\item Retorna $C$
+	\end{enumerate}
+\end{tcolorbox}
+\bigskip
+    
+Los conjuntos seleccionados por el algoritmo claramente forman un 
+cubrimiento del universo. La pregunta es \emph{¿Cuánto más grande 
+es este cubrimiento que el cubrimiento óptimo?}
+    
+Sea $price(e)$ el costo del elemento $e$ en el momento en que fue
+cubierto, $e_1, e_2 \dots e_n$ los elementos de $U$ en el orden
+en que fueron cubiertos, desempatando arbitrariamente. Sea $G$ y
+$OPT$ el costo del cubrimiento encontrado por el greedy y el
+óptimo respecivamente.
+    
+\begin{lemma}
+	Para todo $k \in \{1, ..., n\}$,
+	$price(e_k) \le \frac{OPT}{n-k+1}$
+\end{lemma}
+    
+\begin{proof}
+	Es fácil realizar las siguientes observaciones:
+	\begin{itemize}
+		\item $\sum_{i=1}^n price(e_i) = G \le OPT$, donde 
+		\item $price(e_i) \le price(e_{i+1})$ para todo $i$.
+	\end{itemize}
+				
+	De lo anterior se deduce:
+	\begin{equation*}
+		\sum_{i=k}^n price(e_k) \le \sum_{i=k}^n price(e_i) \le OPT
+	\end{equation*}
+	de donde,
+	\begin{equation*}
+		\begin{split}
+			(n-k+1)*price(e_k) &\le OPT\\
+			price(e_k) &\le \frac{OPT}{n-k+1}
+		\end{split}
+	\end{equation*}
+\end{proof}
+    
+\begin{theorem}
+	El algoritmo greedy es una aproximación de factor $H_n$
+	para el \emph{Set Cover}, donde $H_n = 1 + \frac{1}{2} +
+	\dots + \frac{1}{n}$.
+\end{theorem}
+    
+\begin{proof}
+	Dado que el costo del cubrimiento obtenido por el algoritmo 
+	greedy es $G = \sum_{i=1}^n price(e_i)$, entonces,
+	\begin{equation*}
+		\begin{split}
+			G &\le \frac{OPT}{n-1+1} + \frac{OPT}{n-2+1} + \dots +
+			\frac{OPT}{n-n+1} \\
+			G &\le \frac{OPT}{n} + \frac{OPT}{n-1} + \dots + OPT\\
+			\frac{G}{OPT} &\le (\frac{1}{n} + \frac{1}{n-1} +
+			\dots + 1) = H_n
+		\end{split}
+	\end{equation*}
+\end{proof}
+
+\subsubsection{Load Balancing}
+
+\begin{statement}
+	Dado los tiempos de procesamiento de $n$ tareas, $t_1, t_2 \dots
+	t_n$, y un entero m, encuentre la asignación de tareas a m
+	máquinas idénticas tal que el tiempo en que se completan las 
+	tareas, también llamado en inglés \emph{makespan}.
+\end{statement}
+
+El algoritmo inicial es bastante simple, itera por las tareas,
+asignandolas una a una, en el momento de asignar una tarea, esta
+será asignada a la máquina de menor carga hasta el momento.
+
+\bigskip
+\begin{tcolorbox}
+	\textbf{Algoritmo (Load Balancing)}
+	\begin{enumerate}
+		\item Comienza sin tareas asignadas.
+		\item $T_i=0$ y $A(i)=\emptyset$ para todas las máquinas.
+		\item Ordena las tareas en oreden decreciente de tiempo de ejecución $t_i$.
+		\item Partiendo de $T_1\ge t_2\ge ...\ge t_n$:
+		\item Para $j=1,2,\dots,n$:
+		      \begin{enumerate}
+		      	\item Sea $M_i$ la máquina que logra el menor $T_i$.
+		      	\item Asigne la tarea $j$ a la máquina $M_i$.
+		      	\item $A(i) \leftarrow A(i) \cup \{j\}$
+		      	\item $T_i \leftarrow T_i + t_j$
+		      \end{enumerate}
+	\end{enumerate}
+\end{tcolorbox}
+\bigskip
+
+Es facil observar que siempre existe una máquina que realiza al 
+menos $\frac {1}{m}\sum_i t_i$. Luego $\frac {1}{m}\sum_i 
+t_i \le OPT$, donde $OPT$ es el tiempo en que el óptimo completa 
+todas las tareas.
+
+\begin{theorem}
+	El algoritmo anterior logra un factor aproximación 2 para el 
+	problema propuesto.
+\end{theorem}
+
+\begin{proof}
+	Sea $M_i$ la máquina que completa de última sus tareas, y sea 
+	$t_j$ el tiempo de ejecución de su última tarea.
+											
+	Sea $start_j$ el tiempo en que inicia en $M_i$ la ejecución de 
+	la tarea $j$. Dado que el algoritmo asigna las tareas a la 
+	máquina menos cargada, entonces todos las máquinas están 
+	ocupadas en $start_j$. Esto implica:
+	\begin{equation*}
+		start_j \le \frac{1}{m}\sum_i t_i \le OPT
+	\end{equation*}
+											
+	Además, $t_j \le OPT$. Por tanto, el makespan que obtiene 
+	nuestro algoritmo es $makespan = start_j + p_j \le 2*OPT$.
+\end{proof}
+
+En el enfoque anterior procesamos las tareas en orden arbitrario,
+podría pensarse que procesar estas tareas en algún orden puede
+conllevar una mejora en la aproximación.
+
+Sean procesadas entonces las tareas en orden decreciente por su 
+tiempo de ejecución. Si hay menos de $m$ tareas, está claro que el 
+greedy encuentra la solución óptima. Luego para una cantidad de 
+tareas mayor que $m$ la mejora del algoritmo parte del siguiente 
+lema.
+
+\begin{lemma}
+	\label{lemma:lb}
+	Si hay mas de $m$ tareas, entonces $OPT \ge 2t_{m+1}$.
+\end{lemma}
+
+\begin{proof}
+	Considere solo las primeras $m+1$ tareas de manera ordenada. 
+	Cada una toma al menos $t_{m+1}$ tiempo. Hay $m+1$ tareas y $m$ 
+	máquinas, luego existe una máquina que tendrá tiempo de 
+	procesamiento de al menos $2t_{m+1}$.
+\end{proof}
+
+\begin{theorem}
+	Analizar las tareas en orden decreciente por su tiempo de 
+	ejecución produce una asignación de tareas con
+	$makespan \le \frac{3}{2}*OPT$.
+\end{theorem}
+
+\begin{proof}
+	De manera similar al análisis anterior, considere $M_i$ la 
+	máquina de carga máxima. Si $M_i$ tiene solo una tarea, entonces
+	la asignación es óptima.
+											
+	Supóngase entonces que $M_i$ tiene al menos dos tareas. Sea 
+	$t_j$ el tiempo de ejecución de la última tarea asignada a 
+	$M_i$. Note que $j \ge m+1$, dado que las primeras $m$ tareas 
+	son asignadas a máquinas diferentes. Luego por el lema 
+	\ref{lemma:lb} se tiene $t_j \le t_{m+1} \le \frac{1}{2}OPT$.
+											
+	Procediendo de manera similar al teorema anterior, se obtiene:
+	$$makespan = start_j + p_j \le \frac{3}{2}*OPT$$
+\end{proof}
+
+\subsubsection{K Centers}
+
+\begin{statement}
+	Sea $G=(V,E)$ un grafo completo no dirigido, con una función de 
+	distancia $dist(x,y)$, definida para toda arista de G, que para 
+	todo $x,y,z \in V(G)$ satisface:
+	\begin{itemize}
+		\item $dist(s,s) = 0$
+		\item $dist(s,d) = dis(d,s)$
+		\item $dist(x,y) \le dist(x,z) + dist(z,y)$
+		      \quad desigualdad triangular
+	\end{itemize}
+	El problema consiste en escoger $k$ vértices como centros, tal 
+	que se minimice la mayor distancia desde cualquier vértice 
+	hasta su centro más cercano.
+\end{statement}
+
+Para atacar este problema se aplicará una técnica en la que se 
+asume que se tiene información acerca de la solución óptima. La 
+idea será la siguiente. Se comenzara con un vértice $s$, escogido 
+de manera arbitraria. Suponga que se conoce que en la solución 
+óptima, $s$ está a una distancia de su centro más cercano $c^*$ que 
+es a lo sumo $r$, se desea escoger a $s$ como nuevo centro de 
+aquellos puntos que tenían a $c^*$ como centro, esto es posible 
+lograrlo expandiendo el radio de $r$ a $2r$, dado que por la 
+desigualdad triangular, aquellos vértices que estaban a distancia 
+$r$ de $c^*$, están a lo sumo a distancia $2r$ de $s$.
+
+\bigskip
+\begin{tcolorbox}
+	\textbf{Algoritmo (K-Centers) con información del óptimo}
+	\begin{enumerate}
+		\item $S'$ representará los vértices aún sin cubrir.
+		\item $S' \leftarrow S$.
+		\item $C=\emptyset$.
+		\item Mientras $S' \neq \emptyset$:
+		      \begin{enumerate}
+		      	\item Seleccione cualquier vértice $s\in S'$ y adiciónelo a $C$
+		      	\item Elimine los vértices de $S'$ que están a una distancia a lo sumo $2r$ de $s$.
+		      \end{enumerate}
+		\item Si $\abs{C}\le k$ retorne $C$, de lo contrario no existe conjunto de k elementos que cubran un radio a lo sumo $r$.
+	\end{enumerate}
+\end{tcolorbox}
+\bigskip
+
+\begin{theorem}
+	\label{theorem:kcenter}
+	Si el agoritmo retorna un conjunto $C$ de a lo sumo $k$ centros,
+	entonces estos tienen un radio de cobertura de $r(C) \le 2r$. 
+	De lo contrario, si el algoritmo selecciona más de $k$ centros, 
+	entonces para cualquier conjunto $C^*$ de centros de tamaño a 
+	lo sumo $k$, su radio es de $r(C^*)>r$.
+\end{theorem}
+
+\begin{proof}
+	La primera parte esta clara, dado que si el algoritmo escoge un 
+	conjunto de tamaño a lo sumo $k$, como durante toda la 
+	ejecución se cubrieron solo puntos que estaban a distancia a lo 
+	sumo $2r$ del centro escogido, entonces el radio de dicho 
+	conjunto es a lo sumo $2r$.
+		
+	Para probar la segunda parte suponga que existe un conjunto 
+	$C^*$ tal que $r(C^*) \le r$. Cada centro $c \in C$ 
+	seleccionado por el algoritmo es uno de los vértices originales 
+	de $G$, luego existe $c^* \in C^*$ tal que $dist(c,c^*)\le r$. 
+	Supóngase por un momento que se sabe que no existe un centro 
+	$c^* \in C^*$ tal que contenga a dos centros $c,c' \in C$ 
+	dentro de su radio, esto implicaría que, como cada centro $c 
+	\in C$ tiene al menos un centro $c^* \in C^*$ y este es 
+	distinto para cada $c$, que $\abs{C^*} \ge \abs{C} > k$. Lo 
+	cual es una contradicción.
+		
+	Se necesita mostrar entonces que dos centros $c,c' \in C$ no 
+	pueden estar dentro del radio de un mismo centro $c^* \in C^*$,
+	observe que cada par de centros $c,c' \in C$ cumple que están a 
+	una distancia mayor que $2r$, luego si $c^*$ esta a una 
+	distancia a lo sumo $r$ de cada uno, se violaría la desigualdad 
+	triangular, dado que se tendría,
+	$$dist(c,c^*)+dist(c^*,c') \le dist(c,c')$$
+\end{proof}
+
+El algoritmo anterior podría ser utilizado para acotar el intervalo 
+en el que se encontraría $r$, y por tanto mejorar la aproximación 
+obtenida.
+
+Otra manera de eliminar la necesidad de conocer información sobre 
+el radio óptimo sería el siguiente algoritmo, el cual selecciona 
+siempre como próximo centro, el vértice mas lejano al último centro 
+escogido, y se detiene cuando completa $k$ centros.
+
+\bigskip
+\begin{tcolorbox}
+	\textbf{Algoritmo (K-Centers)}
+	\begin{enumerate}
+		\item Asuma $k\le \abs{S}$ (si no, $C \leftarrow S$).
+		\item Seleccione cualquier vértice $s$ y sea $C=\{s\}$.
+		\item Mientras $\abs{C} < k$:
+		      \begin{enumerate}
+		      	\item Seleccione un vértice $s\in S$ que maximice $dist(s,C)$.
+		      	\item Adicione $s$ a $C$.
+		      \end{enumerate}
+		\item Retorna C.
+	\end{enumerate}
+\end{tcolorbox}
+\bigskip
+
+\begin{theorem}
+	El algoritmo anterior retorna un conjunto $C$ de $k$ puntos, 
+	tal que $r(C) \le 2r(C^*)$, donde $C^*$ es un conjunto óptimo 
+	de $k$ centros.
+\end{theorem}
+
+\begin{proof}
+	Sea $r=r(C^*)$ el menor radio posible de un conjunto de $k$ 
+	centros $C$ con $r(C) > 2r$, se intentará encontrar una 
+	contradicción.
+		
+	Sea $s$ un vértice que esta a una distancia mayor que $2r$ de 
+	todo centro en $C$. Considere una iteración intermedia del 
+	algoritmo, hasta la cual han sido seleccionado un conjunto de 
+	centros $C'$. Si se decide añadir el centro $c'$ en esta 
+	iteración, entonces $c'$ estaría a distancia al menos $2r$ de 
+	todo centro en $C'$, dado que $s$ esta a distancia mayor que 
+	$2r$ de $C$ supraconjunto de $C'$ y se selecciona siempre el 
+	vértice a mayor distancia de $C'$. Se tiene entonces,
+	$$dist(c',C') \ge dist(s,C') > 2r$$
+		
+	De lo anterior se deriva que este algoritmo es una correcta 
+	implementación de las primeras $k$ iteraciones del algoritmo 
+	anterior, en el cual se conocía el óptimo $r$, dado que siempre 
+	se añade un centro que esta a distancia mayor que $2r$ de los 
+	centros previamente seleccionados. Luego de estas $k$ 
+	iteraciones el algoritmo anterior tendría entonces el vértice 
+	$s$ aún sin cubrir, luego realizaría al menos una iteración más,
+	añadiendo otro centro. Luego por el
+	teorema~\ref{theorem:kcenter} no puede existir un conjunto de 
+	$k$ centros con radio a lo sumo $r$. Lo cual es una 
+	contradicción, implicando que $r(C) \le 2r$.
+\end{proof}
+
+\subsection{Layering}
+
+La idea de \emph{layering} es descomponer la función de peso dada
+sobre los vértices de un grafo $G$, en una funciones convenientes, 
+llamadas \emph{degree-weighted}, en una secuencia recursiva de 
+subgrafos de $G$.
+
+Sea $w:V \rightarrow Q^+$ una función que asigna pesos a los 
+vértices de un grafo $G=(V,E)$. Se dice que una función que asigna
+pesos a los vértices es \emph{degree-weighted} si existe una 
+constante $c>0$ tal que el peso de cada vértice $v \in V$ es
+$c*deg(v)$.
+
+\subsubsection{Vertex Cover}
+
+\begin{statement}
+	Se llama cubrimiento de vértices (\emph{vertex cover}) de un 
+	grafo $G=(V,E)$ a un $S \subseteq V$ tal que toda arista del 
+	grafo tiene al menos un extremo en $S$. Para cada vértice
+	$i \in V$ se le asigna un peso $w(i)$ a través de una función 
+	de 	peso $w$. El objetivo es hallar el \emph{vertex cover} de 
+	peso total mínimo.
+\end{statement}
+
+\begin{lemma}
+	\label{lemma:vertex-cover}
+	Sea $w:V \rightarrow Q^+$ una función \emph{degree-weighted}. 
+	Entonces $w(V) \le 2*OPT$
+\end{lemma}
+
+\begin{proof}
+	Sea c la constante tal que $w(v)=c*deg(v)$, y sea $U$ un 
+	cubrimiento óptimo en $G$. Dado que $U$ cubre todas las aristas,
+	$$\sum_{v \in U}deg(v) \ge \vert E \vert$$
+	Por tanto, $w(U) \ge c * \vert E \vert$. Ahora dado que
+	$\sum_{v \in V}deg(v) = 2 * \vert E \vert$,
+	$w(V) = 2*c * \vert E \vert$. Luego, $2*w(U) \ge w(V)$.
+\end{proof}
+
+Defina la función \emph{degree-weighted} más grande sobre $w$ como 
+sigue, Elimine todos los vértices de \emph{degree} 0 del grafo, y 
+sobre los restantes vértices, compute $c=min{w(v)/deg(v)}$. Luego,
+$t(v)=c*deg(v)$ es la función deseada. Defina $w'=w(v)-t(v)$ como 
+la función de peso residual.
+
+El algoritmo para descomponer $w$ en funciones 
+\emph{degree-weighted}
+es de la siguiente manera. Sea $G_0=G$. Elimine los vértices de
+\emph{degree} 0 de $G_0$, diga que este conjunto es $D_0$, y 
+calcule la función \emph{degree-weighted} más grande sobre $w$ en 
+$G_0-D_0$. Sea $W_0$ los vértices de peso residual 0, estos 
+vértices son incluidos en el cubrimiento. Sea $G_1$ el grafo 
+inducido sobre $V-(D_0 \cup W_0)$. Se repite el proceso anterior 
+sobre $G_1$ con respecto a la función de peso residual. El proceso 
+termina cuando todos los vértices tienen \emph{degree} 0; denote 
+este grafo como $G_k$.
+
+Sean $t_0, t_1 \dots t_{k-1}$ las funciones \emph{degree-weighted} 
+definidas sobre los grafos $G_0, G_1 \dots G_{k-1}$. El cubrimiento
+de vértices escogido es $C = W_0 \cup \dots \cup W_{k-1}$. 
+Claramente, $V-C=D_0 \cup \dots \cup D_k$.
+
+\begin{theorem}
+	El algoritmo anterior logra un factor 2 de aproximación para el
+	problema de \emph{vertex cover}, asumiendo pesos arbitrarios 
+	para los vértices.
+\end{theorem}
+
+\begin{proof}
+	Es necesario mostrar que $C$ es un cubrimiento de $G$ y
+	$w(C) \le 2*OPT$. Suponga que $C$ no es un cubrimiento de $G$.
+	Entonces debe haber una arista $(u,v)$ con $u \in D_i$ y
+	$v \in D_j$, para algún $i,j$. Sin pérdida de generalidad, asuma
+	$i \le j$. Luego, $(u,v) \in E(G_i)$, contradiciendo el hecho de
+	que u es un vértice de \emph{degree} 0. De lo anterior, $C$ es 
+	un cubrimiento de vértices en $G$.
+										
+	Para probar la segunda parte es necesario observar que en cada
+	capa $i$, $C^* \cap G_i$ es un \emph{vertex cover} para $G_i$. 
+	Por tanto, por el lema \ref{lemma:vertex-cover},
+	$t_i(C \cap G_i) \le 2*t_i*(C^* \cap G_i)$, de donde,
+	$$w(C) = \sum_{i=0}^{k-1}t_i*(C \cap G_i) \le
+	2*\sum_{i=0}^{k-1}t_i*(C^* \cap G_i) \le w*w(C^*)$$
+\end{proof}
+
+\subsection{PTAS y FPTAS}
+
+A pesar de saber de la dificultad de encontrar la solución exacta a 
+problemas NP de optimización de manera eficiente, se ha observado 
+que sí es posible aproximar estas soluciones en tiempo polinomial, 
+teniendo garantías respecto a cuanto pueden distar estas 
+aproximaciones de la solución exacta. Luego, es natural que 
+comience a surgir la interrogante de si podrán encontrarse 
+aproximaciones tan buenas como se desee en un momento dado.
+
+Sea $\Pi$ un problema NP de optimización con función objetivo
+$f_{\Pi}$. Se dice que el algoritmo $A$ es un esquema de 
+aproximación (\emph{approximation scheme}) para $\Pi$, si para la 
+entrada $(I,\epsilon)$, donde $I$ es una instancia de $\Pi$ y 
+$\epsilon > 0$ es un parámetro de error, este retorna una solución 
+$s$ tal que:
+\begin{itemize}
+	\item $f_{\Pi}(I, s) \le (1 + \epsilon)*OPT$ si $\Pi$ es un 
+	      problema de minimización.
+	\item $f_{\Pi}(I, s) \ge (1 - \epsilon)*OPT$ si $\Pi$ es un 
+	      problema de maximización.
+\end{itemize}
+
+$A$ se dirá un esquema de aproximación en tiempo polinomial
+(\emph{polynomial time approximation scheme}), abreviado \emph{PTAS}
+por sus siglas en inglés, si para cualquier $\epsilon > 0$
+\emph{fijo} su tiempo de ejecución es polinomial en el tamaño de la 
+instancia $I$.
+
+La definición anterior permite que $A$ dependa arbitrariamente de 
+$\epsilon$. Si se rectifica la definición anterior para que $A$ 
+tenga tiempo de ejecución polinomial con respecto al tamaño de la 
+instancia $I$ y $1/\epsilon$, entonces $A$ se dirá un esquema de 
+aproximación en tiempo completamente polinomial 
+(\emph{fully polynomial time approximation scheme}), abreviado
+\emph{FPTAS} por sus siglas en inglés.
+
+\subsubsection{Knapsack}
+
+\begin{statement}
+	Dado un conjunto $S = \{a_1, \dots , a_n\}$ de objetos, con 
+	valor y tamaño especificados, $size(a_i) \in \Z^+$ y
+	$profit(a_i) \in \Z^+$, y la capacidad de la mochila
+	$B \in \Z^+$, encuentre un subconjunto de objetos cuyo tamaño 
+	total este acotado por $B$ y su valor sea maximal.
+\end{statement}
+
+Sea $P$ la ganancia del objeto de mayor valor
+($P=\max_{a \in S} profit(a)$). Entonces es fácil observar que 
+cualquier solución está acotada superiormente por $nP$. Para cada
+$i \in \{1, 2 \dots n\}$ y $p \in \{0, 1 \dots nP\}$, sea $S_{i,p}$
+un subconjunto de $\{a_1, a_2 \dots a_i\}$ cuyo valor total es 
+exactamente $p$ y su tamaño es minimal. Sea $A(i,p)$ el tamaño del 
+conjunto $S_{i,p}$ ($A(i,p)=\infty$ si no existe tal conjunto).
+\begin{align*}
+	A(i,0)   & =0 \quad \text{para todo $i \in \{1, 2 \dots n\}$} \\
+	A(i, p)  & =                                                  
+	\begin{cases}
+	min\{A(i-1, p), size(a_{i}) + A(i,p-profit(a_{i}))\}
+	         & \text{si $profit(A_{i} \le p)$}                    \\
+	A(i-1,p) & \text{en otro caso}                                
+	\end{cases}
+\end{align*}
+
+$A(i,p)$ puede ser definida mediante la recurrencia anterior, 
+permitiendo ser calculada para todo $i$, $j$ en tiempo
+\emph{pseudo-polinomial} $O(n^2P)$.
+
+Note que si los valores de los objetos estuvieran acotados por un 
+polinomio en $n$, entonces este algoritmo sería polinomial. La idea 
+fundamental para obtener un \emph{FPTAS} es precisamente esta idea.
+Ignoraremos una cierta cantidad de los bits menos significativos de 
+los valores de los objetos (dependiendo del parametro $\epsilon$), 
+de esta manera los valores modificados estarían acotados por un 
+polinomio en $n$ y $1/\epsilon$. Permitiendo así encontrar una 
+solución cuyo valor es al menos $(1-\epsilon)OPT$, en tiempo 
+polinomial con respecto a $n$ y $1/\epsilon$.
+
+\bigskip
+\begin{tcolorbox}
+	\textbf{Algoritmo (Knapsack FPTAS)}
+	\begin{enumerate}
+		\item Dado $\epsilon >0$, sea $k \leftarrow \frac{\epsilon P}{n}$.
+		\item Por cada objeto $a_i$ defina $profit'(a_i)=\floor{\frac{profit(a_i)}{k}}$.
+		\item Con estos nuevos $profits$, utilizando la recurrencia anterior.
+			  Calcule el conjunto $S'$ de mayor $profit$.
+		\item Devuelva $S'$.
+	\end{enumerate}
+\end{tcolorbox}
+\bigskip
+
+\begin{lemma}
+	\label{lemma:knapsack}
+	El conjunto $S'$ retornado por el algoritmo anterior satisface:
+	$$profit(S') \ge (1-\epsilon)OPT$$
+\end{lemma}
+
+\begin{proof}
+	Sea $O$ el conjunto óptimo. Para cualquier objeto $a$, debido 
+	al redondeo por debajo, $K*profit'(a)$ puede ser mas pequeño 
+	que $profit(a)$, pero no por más de $K$. Por tanto,
+	$$profit(O)-K*profit'(O) \le nK$$
+	El paso de programación dinámica debe al menos retornar una 
+	solución tan buena como $O$ dados los nuevos valores, esto es
+	$profit'(S') \ge profit'(O)$, de donde
+	\begin{align*}
+		profit(S') & \ge K*profit'(O) \ge profit(O)-nK 
+		= OPT-\epsilon P\\
+		           & \ge OPT - \epsilon*OPT            
+		\qquad \text{por ser $OPT \ge P$}\\
+		           & \ge (1-\epsilon)*OPT              
+	\end{align*}
+\end{proof}
+
+\begin{theorem}
+	El algoritmo anterior es un FPTAS para el problema de la 
+	mochila.
+\end{theorem}
+
+\begin{proof}
+	Por el lema \ref{lemma:knapsack}, la solución encontrada esta 
+	dentro de un factor de $(1-\epsilon*)$ del óptimo. El tiempo de 
+	ejecución del algoritmo es,
+	$$O(n^2 \left \lfloor \frac{P}{K} \right \rfloor
+	= O(n^2 \left \lfloor \frac{n}{\epsilon} \right \rfloor)$$
+	lo cual es polinomial con respecto a $n$ y $1/\epsilon$.
+\end{proof}
+
+\end{document}

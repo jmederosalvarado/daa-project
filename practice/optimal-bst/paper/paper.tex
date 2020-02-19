@@ -1,0 +1,312 @@
+\documentclass[spanish]{llncs}
+
+\usepackage[utf8]{inputenc}
+
+\usepackage{amsmath}
+
+\usepackage{xcolor}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.97}
+
+\usepackage{minted}
+\usemintedstyle{friendly}
+\setminted {
+	linenos = true,
+	bgcolor = backcolour
+}
+
+\usepackage{dsfont}
+\newcommand*{\Z}{\mathds{Z}}
+
+\begin{document}
+
+\title{Árbol de Búsqueda Binaria Óptimo}
+
+\author{Jorge Mederos}
+\authorrunning{J. Mederos}
+
+\institute{Universidad de La Habana}
+
+\maketitle
+
+\section{El Problema}
+
+Dado un conjunto $S = \{e_1, e_2, \dots, e_n\}$ de n elementos distintos,
+tal que $e_1 < e_2 < \dots < e_n$ y considerando un árbol de búsqueda binaria
+de elementos de $S$, se desea que los elementos que son accedidos con mayor
+frecuencia estén más cercanos a la raíz.
+
+El costo de acceder a un elemento $e_i \in S$ en un arbol ($cost(e_i)$) es igual
+al numero de aristas en el camino que conecta la raiz con el nodo que contiene
+al elemento. Dado la frecuencia de acceso a cada elemento de $S$, ($f(e_1)$, $f(e_2)$~\dots
+$f(e_n)$), decimos que el costo total de un arbol esta dado por la expresion: 
+
+$$\sum_{i=1}^{n} f(e_i)*cost(e_i)$$
+
+De esta forma el arbol de busqueda binaria de menor costo total es el que tiene una mejor
+representación para buscar elementos en $S$. Por este mootivo es llamado Árbol de Búsqueda
+Binaria Óptimo.
+
+\paragraph*{Fuente}Este problema fue encontrado y la mayor parte de su demostracion se apoya en
+el articulo \emph{Efficient dynamic programming using quadrangle inequalities} de la autora \emph{F. Frances Yao}
+
+\paragraph{Entrada:} n enteros no negativos representando la frecuencia de acceso de los
+elementos de $S$. El entero i-ésimo representa el valor de $f(e_i)$.
+
+\paragraph{Salida:} 1 entero representando el costo del Árbol de Búsqueda Binaria
+Óptimo que puede formarse a partir de elementos con la frecuencia de acceso dada.
+
+\section{Solución}
+
+Definamos $c_{i,j}$ como el costo del Árbol de Búsqueda Binaria Óptimo que se puede formar
+con los elementos $e_i$, $e_{i+1}$, \dots, $e_j$. Es posible observar que se cumple la
+siguiente recurrencia:
+
+\begin{align}
+	\label{eq:rec:c}
+	c_{i,j}                                       & =                           
+	\begin{cases}
+	0                                             & \text{ if } i \ge j         \\
+	w_{i,j} + \min_{i<k<j}\{c_{i,k-1} + c_{k,j}\} & \text{ if } i \le j         
+	\end{cases}
+	\\
+	\label{eq:rec:w}
+	w_{i,j}                                       & = \sum_{i \le k\le j}f(e_k) 
+\end{align}
+
+Es posible calcular $c_{i,j}$ en $O(n^3)$. Debajo se provee una implementación
+básica del enfoque anterior.
+
+\inputminted{python}{basic.py} % code for first aproximation
+
+\section{Optimizacion de Knuth}
+
+Para poder aplicar esta optimización se requiere que la recurrencia tenga la forma anterior
+y que se cumpla la siguiente propiedad:
+
+\begin{property}
+	\label{property:knuth}
+	Sea $K_{i,j}$ el mayor k tal que $c_{i,j} = w_{i,j} + c_{i,k-1} + c_{k,j}$,
+	entonces $\forall_{i,j}$ se cumple que $K_{i,j-1} \le K_{i,j} \le K_{i+1,j}$,
+	esto significa que el óptimo k es monótono en j para un i fijo y monótono
+	en i para un j fijo.
+\end{property}
+
+\subsection{Aplicacion de la técnica.}
+La idea es ir manteniendo los valores de $K_{i,j}$
+a medida que iteramos, teniendo esto podemos calcular $c_{i,j}$ iterando por los k tales que
+$K_{i,j-1} \le k \le K_{i+1,j}$, y guardando en $K_{i,j}$ el mayor k tal que $c_{i,j}$
+es minimo.
+
+Debajo se provee una implementacion del enfoque anterior.
+\inputminted{python}{optimized.py} % code optimized
+
+\subsection{Demostración de la optimizacion.}
+
+\begin{lemma}
+	\label{lemma:knuth}
+	Si se cumple la propiedad~\ref{property:knuth} entonces 
+	$\forall_{\delta, 1 \le \delta \le n-1}$ es posible calcular
+	$c_{i,i+\delta}$ en $O(n)$ si $\forall_{i,j,j-i \le \delta}$,
+	$K_{i,j}$ y $c_{i,j}$ están calculados.
+\end{lemma}
+
+\begin{proof}
+	La cantidad de operaciones necesarias para calcular $c_{i,i+\delta}$
+	es computada por la expresion siguiente:
+	\begin{equation*}
+		\begin{split}
+			t &= \sum_{i=1}^{n-\delta}(K_{i+1,i+\delta} - K_{i,i+\delta-1} + \alpha) \\
+			&= K_{n-\delta+1,n} - K_{1,\delta} + (n-\delta)*\alpha \\
+		\end{split}
+	\end{equation*}
+	Dado que $0 \le K_{i,j} \le n \quad \forall_{1 \le i \le j \le n}$ entonces $t \in O(n)$.
+\end{proof}
+
+\begin{theorem}
+	\label{theorem:knuth}
+	Si se cumple la propiedad~\ref{property:knuth}, luego de aplicar la optimizacion de Knuth,
+	es posible calcular la $c_{1,n}$ en $O(n^2)$.
+\end{theorem}
+
+\begin{proof}
+	Dado que $1 \le \delta \le n-1$, luego por el lema~\ref{lemma:knuth} es posible calcular
+	$c_{i,j}$ y $K_{i,j}$ para $j-i = \delta = 1, 2, \dots, n$ susecivamente con costo $O(n)$
+	por cada cómputo. Se obtiene asi un costo total de $O(n^2)$ para calcular $c_{1,n}$.
+\end{proof}
+
+\subsection{Desigualdad Cuadrangular y Monotonicidad}
+
+Existe otra condicion suficiente que permite garantizar la aplicacion de esta optimizacion
+y es mucho mas sencilla de verificar. Esta se apoya en la desigualdad cuadrangular y la
+monotonicidad de la funcion $w$.
+
+\begin{definition}
+	\label{def:qi}
+	Sean $a,b,c,d \in \Z$, donde $a \le b \le c \le d$. $f(x,y)$ satisface
+	la desigualdad cuadrangular si:
+	\begin{equation*}
+		f(a,c) + f(b,d) \le f(a,d) + f(b,c)
+	\end{equation*}
+\end{definition}
+
+En lo adelante para indicar que $f(x,y)$ satisface la desigualdad cuadrangular
+se dirá que $f(x,y)$ satisface $QI$.
+
+\begin{definition}
+	\label{def:monotone}
+	Sean $a,b,c,d \in \Z$, donde $a \le b \le c \le d$. $c(x,y)$ es
+	monotona si:
+	\begin{equation*}
+		f(b,c) \le f(a,d)
+	\end{equation*}
+\end{definition}
+
+\begin{lemma}
+	\label{lemma:qi:1}
+	Si $w$~\eqref{eq:rec:w} satisface $QI$ segun def.~\ref{def:qi} y es monotona segun
+	def.~\ref{def:monotone}, entonces la funcion $c$~\eqref{eq:rec:c}
+	también satisface $QI$.
+\end{lemma}
+
+\begin{proof}
+	La demostración será por inducción en la longitud ($l = |j' - i|$) del lado largo
+	de la desigualdad cuadrangular.
+																										
+	\begin{equation}
+		\label{eq:ind:base}
+		c(i,j) + c(i',j') \le c(i,j') + c(i',j) \qquad para \quad i \le i' \le j \le j'
+	\end{equation}
+																										
+	Note que para $i=i'$ o $j=j'$ es trivial que se cumple \eqref{eq:ind:base}. Luego
+	se cumple para $l \le 1$.
+																									
+	Inductivamente partiendo de que se cumple para $l=t$, para $l=t+1$ es posible
+	analizar dos casos:
+																									
+	\textbf{\emph{Caso A\;$(i < i' = j < j')$.}} Para $i'=j$ ocurre que \eqref{eq:ind:base}
+	se convierte en:
+	\begin{equation}
+		\label{eq:ind:base-a}
+		c(i,j) + c(j,j') \le c(i,j')
+	\end{equation}
+																									
+	Suponga que $c(i,j')$ es minimizado para $k=z$, esto es $c(i,j') = c_z(i,j')$,
+	donde $c_k(i,j = w(i,j) + c(i,k-1) + c(k,j)$.
+																									
+	\textbf{\emph{Caso A1\;$(z \le j)$.}} Se tiene entonces:
+	\begin{align*}
+		c(i,j)           & \le c_z(i,j) = w(i,j) + c(i,z-1) + c(z,j) & \text{por $z \le j$}        \\
+		\intertext{sumando $c(j,j')$ a ambos lados obtenemos}
+		c(i,j) + c(j,j') & \le w(i,j) + c(i,z-1) + c(z,j) + c(j,j')  &                             \\
+		\intertext{por hipótesis de inducción \eqref{eq:ind:base-a} para $z \le j < j'$}
+		                 & \le w(i,j) + c(i,z-1) + c(z,j')           &                             \\
+		                 & \le w(i,j') + c(i,z-1) + c(z,j')          & \text{por ser $w$ monotona} \\
+		                 & =c(i,j')                                  &                             
+	\end{align*}
+																				
+	\textbf{\emph{Caso A2\;$(z > j)$.}} Este caso es simétrico con el anterior:
+	\begin{align*}
+		c(j,j')          & \le c_z(j,j') = w(j,j') + c(j,z-1) + c(z,j') & \text{por $z > j$} \\
+		\intertext{sumando $c(i,j)$ a ambos lados obtenemos}
+		c(i,j) + c(j,j') & \le w(j,j') + c(j,z-1) + c(z,j') + c(i,j)    &                    \\
+		\intertext{por hipótesis de inducción \eqref{eq:ind:base-a} para $i < j \le z-1'$}
+		                 & \le w(i,j) + c(i,z-1) + c(z,j')              &                    \\
+		                 & \le w(i,j') + c(i,z-1) + c(z,j')             &                    \\
+		                 & =c(i,j')                                     &                    
+	\end{align*}
+																		
+	\textbf{\emph{Caso B\;$(i < i' < j < j')$.}} Asumamos que los dos terminos en el lado
+	derecho de \eqref{eq:ind:base} alcanzan su valor para $k=y$ y $k=z$. Es decir,
+	$$c(i',j) = c_y(i',j) \quad y \quad c(i',j) = c_y(i',j)$$
+																		
+	\textbf{\emph{Caso B1\;$(z \le y)$.}} Tenemos $c(i',j') \le c_y(i',j')$ y $c(i,j) \le c_z(i,j)$.
+	Al adicionarlos se obtiene:
+	\begin{equation}
+		\label{eq:b1}
+		\begin{split}
+			c(i,j) + c(i',j') & \le c_z(i,j) + c_y(i',j')                                       \\
+			& \le w(i,j) + w(i',j') + c(i,z-1) + c(z,j) + c(i',y-1) + c(y,j')
+		\end{split}
+	\end{equation}
+														
+	Aplicando la $QI$ de $w$, y la hipótesis~\eqref{eq:ind:base} en $z \le y < j < j'$,
+	\eqref{eq:b1} se convierte en:
+														
+	\begin{align*}
+		c(i,j) + c(i',j') & \le c_z(i,j) + c_y(i',j')                                       \\
+		                  & \le w(i',j) + w(i,j') + c(i,z-1) + c(i',y-1) + c(y,j) + c(z,j') \\
+		                  & \le c_y(i',j) + c_z(i,j')                                       \\
+		                  & = c(i',j) + c(i,j')                                             \\
+	\end{align*}
+										
+	\textbf{\emph{Caso B2\;$(z > y)$.}} Esto una vez mas se reduce a B1. Luego,
+	\emph{queda demostrado el lema~\ref{lemma:qi:1}}.
+\end{proof}
+
+\begin{lemma}
+	\label{lemma:qi:2}
+	Si la funcion $c$ definida en \eqref{eq:rec:c} satisface $QI$ entonces tenemos,
+	\begin{equation}
+		\label{eq:qi:2}
+		K_c(i,j) \le K_c(i,j+1) \le K_c(i+1,j+1) \quad \forall i \le j
+	\end{equation}
+\end{lemma}
+
+\begin{proof}
+	Esto es trivialmente cierto para $i=j$, por tanto se asume $i<j$. Para
+	probar la primera desigualdad ($K_c(i,j) \le K_c(i,j+1) \le K_c(i+1,j+1)$),
+	se muestra que para $i < k \le k' \le j$,
+	\begin{equation}
+		\label{eq:aux}
+		c_{k'}(i,j) \le c_k(i,j) \implies c_{k'}(i,j+1) \le c_k(i,j+1)
+	\end{equation}
+	Si se toma $QI$ de $c$ en $k \le k' \le j < j+1$
+							
+	$$c(k,j) + c(k',j+1) \le c(k',j) + c(k,j+1)$$
+							
+	Añadiendo $w(i,j) + w(i,j+1) + c(i,k-1) + c(i,k'-1)$ a ambos lados se obtiene
+	$$c_k(i,j) + c_{k'}(i,j+1) \le c_{k'}(i,j) + c_k(i,j+1)$$
+	de donde se deriva \eqref{eq:aux} con facilidad.
+							
+	Una vez demostrado \eqref{eq:aux} suponga $k' = K_c(i,j) > K_c(i,j+1) = k$. Luego
+	como $c_{k'}(i,j) \le c_k(i,j)$ por ser $k'$ el punto donde se alcanza el óptimo $c(i,j)$,
+	entonces por \eqref{eq:aux} se tiene que $c_{k'}(i,j+1) \le c_k(i,j+1)$, como $k$
+	es el punto donde se alcanza el optimo $c(i,j+1)$ entonces $c_k(i,j+1) \le c_{k'}(i,j+1)$,
+	de donde $c_{k'}(i,j+1) = c_k(i,j+1)$, lo cual es imposible, de lo contrario $k=K_c(i,j+1)$
+	no sería el mayor valor en que se alcanza el óptimo.
+					
+	Suponga que $k'=K_c(i,j+1) > K_c(i+1,j+1)=k$, la segunda desigualdad
+	($K_c(i,j+1) \le K_c(i+1,j+1)$) se deriva de $QI$ para $c$~\eqref{eq:rec:c}
+	en $i < i+1 \le k \le k'$, vease a continuación:
+					
+	\begin{align*}
+		c(i,k) + c(i+1,k')              & \le c(i,k') + c(i+1, k)              \\
+		\intertext{añadiendo $c(k+1,j+1)$ a ambos lados se obtiene}
+		c(i,k) + c(i+1,k') + c(k+1,j+1) & \le c(i,k') + c(i+1, k) + c(k+1,j+1) \\
+		c(i,k) + c(k+1,j+1) + c(i+1,k') & \le c(i,k') + c(i+1,j+1)             \\
+		\intertext{como $c(i,k') + c(k'+1,j+1)$ es minimal, entonces}
+		c(i,j+1) + c(i+1,k')            & \le c(i,k') + c(i+1,j+1)             \\
+		\intertext{lo cual es imposible, dado que $i<i+1 \le k' \le j+1$ y $c$ cumple $QI$.}
+	\end{align*}
+				
+	De lo anterior se tiene que $K_c(i,j) \le K_c(i,j+1) \le K_c(i+1,j+1)$,
+	\emph{quedando así demostrado el lema~\ref{lemma:qi:2}}.
+\end{proof}
+
+\begin{theorem}
+	\label{theorem:qi}
+	Si $w$ cumple QI~(~\ref{def:qi}~) y es monótona~(~\ref{def:monotone}~), entonces
+	se cumple la propiedad \ref{property:knuth}.
+\end{theorem}
+
+\begin{proof}
+	Se deriva directamente de aplicar el lema \ref{lemma:qi:1} y el lema \ref{lemma:qi:2}.
+\end{proof}
+
+\section{De vuelta al problema}
+Luego de lo analizado, es posible probar demostrando las propiedades
+correspondientes de la funcion $w$ \eqref{eq:rec:w} que el problema de hallar el costo
+del Árbol de Busqueda Binaria Óptimo, y mas específicamente, calcular el valor de $c(1,n)$,
+se le puede aplicar la optimización de Knuth. La prueba de esto es bastante sencilla.
+
+\end{document}

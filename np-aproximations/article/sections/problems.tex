@@ -1,0 +1,400 @@
+\documentclass[../np-approximations.tex]{subfiles}
+ 
+\begin{document}
+
+\section{Problems}
+
+\subsection{Approximating Degree-MST}
+
+\begin{statement}
+	Dado un grafo $G=(V,E)$ el problema consiste en encontrar un árbol abarcador de costo mínimo, tal que el degree de su vértice con mayor degree sea mínimo.
+\end{statement}
+
+\begin{definition}
+	Dado un árbol de cubrimiento $T$ en un grafo $G$, considere una 
+	arista $(u,v)$ de $G$ que no está en $T$, y sea $C$ el único 
+	ciclo que generaría dicha arista de ser añadida a $T$. Suponga 
+	que existe un vértice $w$ en $C$ con la propiedad de que
+	$\rho(w) \ge \max(\rho(u),\rho(v))+2$, donde $\rho(x)$ es el 
+	degree de un vértice $x$ en $T$. Denótese como mejora local al 
+	proceso de añadir a $T$ la arista $(u,v)$ y eliminar cualquiera 
+	de las otras aristas de $T$ incidentes en $w$, dado que
+	$\max(\rho(u),\rho(v),\rho(w))$ ha sido decrementado.
+\end{definition}
+
+\begin{definition}[LOT]
+	Un árbol localmente óptimo (\emph{LOT}), es un árbol en el cual 
+	ninguna de las aristas que no pertenecen a él puede producir 
+	\emph{mejoras locales}.
+\end{definition}
+
+Se denotan $T^*$, $\Delta^*$ como el \emph{MST} óptimo, y su degree 
+maximal.Sea $k$ el degree maximal de un \emph{LOT} $T$, se define 
+$S_i$ como el conjunto de vértices de degree al menos $i$ en $T$.
+
+\begin{theorem}
+	Para cualquier $b>1$, el degree maximal $k$ de un árbol 
+	localmente óptimo $T$ es menor que
+	$(b*\Delta^* + \ceil{\log_b n} )$. Por tanto
+	$k \in O(\Delta^* + \ceil{\log n} )$
+\end{theorem}
+
+\begin{proof}
+	Note que para $i=k,k-1,\dots$, el factor de expansión de los 
+	conjuntos $S_i$ ($\abs{S_{i-1}}/\abs{S_i}$) puede ser más 
+	grande que $b$, a lo sumo $\log_b n$ veces seguidas, es decir, 
+	existe $i$, tal que $k-\ceil{\log_b n} + 1 \le i \le k$ y
+	$\abs{S_{i-1}} \le b \abs{S_i}$. De lo contrario,
+	\begin{equation}
+		\label{eq:ratio}
+		\abs{S_{k-\ceil{\log_b n}}} \ge
+		b^{\ceil{\log_b n}} \abs{S_k}
+	\end{equation}
+	lo cual es una contradicción, dado que $\abs{S_i} \le n$, 
+	mientras que $b^{\log_b n} \ge n$ y $\abs{S_k} \ge 1$.
+																                                    
+	Suponga que se eliminan los vértices de $S_i$ de $T$. Esto 
+	dividiría $T$ en un bosque $F$ con $t$ árboles. Como cada 
+	vértice en $S_i$ tiene degree al menos $i$, hay al menos
+	$i\abs{S_i}$ aristas incidentes a estos vértices. También como 
+	$T$ es un árbol, a lo sumo $\abs{S_i} - 1$ estan en $S_i$, y 
+	por tanto son contadas dos veces, por tanto,
+	\begin{equation}
+		\label{eq:t.lb}
+		t \ge i\abs{S_i} - 2(\abs{S_i} - 1)
+	\end{equation}
+																                                    
+	Observe que toda arista entre árboles distintos de $F$ es 
+	incidente en al menos un vértice de degree $i-1$. Sea $e=(u,v)$ 
+	una arista que cruza entre dos árboles de $F$. Entre $u$ y $v$ 
+	existía un camino en $T$, dado que $u$ y $v$ estan en árboles 
+	distintos de $F$, existe al menos un vértice $w_0$ en el camino 
+	de $u$ a $v$ tal que $w_0 \in S_i$. Luego por la condición de 
+	optimalidad de los \emph{LOT},
+	\begin{equation}
+		\begin{split}
+			\rho(w_0) & < \max(\rho(v),\rho(u)) + 2 \\
+			\rho(w_0) & < \max(\rho(v),\rho(u)) + 2 \\
+			i - 2     & < \max(\rho(v),\rho(u))     
+			\quad \text{dado que $\rho(w_0) \ge i$} \\
+			i-1       & \le \max(\rho(v),\rho(u))   
+		\end{split}
+	\end{equation}
+	Han sido encontrados entonces $t+\abs{S_i}$ componentes, tal 
+	que cada arista entre componentes es incidente en al menos un 
+	vértice de $S_{i-1}$. En cualquier árbol abarcador de costo 
+	mínimo existen al menos $t+\abs{S_i}-1$ aristas conectándo 
+	estas componentes y cada una de estas aristas es incidente en 
+	al menos un vértice en $S_{i-1}$. Luego en cualquier árbol 
+	abarcador de $G$, el degree promedio de los vértices de
+	$S_{i-1}$ es al menos,
+	\begin{equation}
+		\frac{t+\abs{S_i}-1}{\abs{S_{i-1}}}
+	\end{equation}
+	El degree maximal $\Delta^*$ es al menos el degree promedio de 
+	estos vértices. Luego la ecuación  implica,
+	\begin{equation}
+		\label{eq:opt.lb}
+		\begin{split}
+			\Delta^* & \ge \frac{t+\abs{S_i}-1}{\abs{S_{i-1}}}   \\
+			& \ge \frac{(i-1)\abs{S_i} + 1}{b\abs{S_i}} 
+			\quad \text{por \eqref{eq:t.lb} y \eqref{eq:ratio}}\\
+			& > \frac{i-1}{b}                         
+		\end{split}
+	\end{equation}
+																                                    
+	Combinando \eqref{eq:opt.lb} con la condición en el rango de 
+	$i$, se obtiene,
+	$$k < b\Delta^*+\ceil{\log_b n}$$
+\end{proof}
+
+Note que solo fue utilizada la condición de optimalidad para los 
+vértices con \emph{alto} degree, luego, este resultado se sostiene 
+para cualquier árbol que satisfaga la condicion de optimalidad 
+local para los vértices en $S_i$ con $i = k - \ceil{\log_b n} + 1$.
+Pudiera llamarse a estos árboles, árboles pseudo optimales
+\emph{POT}.
+
+El siguiente algoritmo resuelve el problema en tiempo polinomial.
+Se comienza con un árbol abarcador arbitrario $T$ de $G$. Sea k el 
+degree máximo de un vértice de $T$. En cada fase el algoritmo trata 
+de reducir el degree de algún vértice de $T$ cuyo degree está entre 
+$k$ y $k-\ceil{log n}$, utilizando la técnica de mejoras locales. 
+El algoritmo se detiene cuando ningún vértice en $S_i$ puede ser 
+mejorado de la manera antes descrita.
+
+\subsection{Edge-Coloring}
+
+\begin{statement}
+	Dado un grafo $G=(V,E)$. Se desea determinar la menor cantidad de
+	colores, con los que se pueden colorear las aristas del mismo, de 
+	manera tal que en un vértice no coincidan nunca dos aristas del
+	mismo color.
+\end{statement}
+
+Sea $d$ el degree del vértice de mayor degree en el grafo $G=(V,E)$.
+Sea $C$ la menor cantidad de colores que se necesitan para colorear 
+las aristas de manera válida.
+
+Es fácil notar que, $C \ge d$, dado que si existe un vértice en el 
+que inciden $d$ aristas y se utilizan menos de $d$ colores, dos de 
+estas aristas tendrían el mismo color, invalidando así esta 
+coloración.
+
+Es posible demostrar también que $C \le d+1$, teorema de Vizing. 
+Note que este resultado permite obtener una aproximación $C$, que 
+no diste en más de una unidad.
+
+La demostración del teorema anterior se realizará obteniendo un algoritmo
+que dado un grafo con una coloración aceptable para sus aristas y una única
+arista sin colorear, devuelve una coloración válida de dicho grafo con la
+arista ya coloreada. Note que luego de construido este algoritmo, utilizar
+el mismo para obtener una coloración aceptable de las aristas con a lo sumo
+$d+1$ colores.
+
+\bigskip
+\begin{tcolorbox}
+	\textbf{Algoritmo (Color One Edge)}
+	\begin{enumerate}
+		\item Sea $xy$ la única arista no colorada.
+		\item Mientras el \emph{c(y)-camino} termine en $y$:
+		      \begin{enumerate}
+		      	\item Determine $z$ tal que la arista $xz$ tiene color $c(y)$.
+		      	\item Asigne a $xy$ color $c(y)$ y descoloree la arista $xz$.
+		      	\item $y \leftarrow z$.
+		      \end{enumerate}
+		\item Intercambie los colores en el \emph{c(y)-camino}.
+		\item Asigne a la arista $xy$ color $c(y)$.
+	\end{enumerate}
+\end{tcolorbox}
+\bigskip
+
+La siguiente notación es utilizada de aquí en adelante:
+\begin{itemize}
+	\item $acc(v)$, predicado que se hace verdadero si la 
+	      coloración de $v$ es aceptable, es decir, no existen dos 
+	      aristas del mismo color incidentes en $v$.
+	\item $c(v)$ es un color asignado a $v$
+	\item $f(v)$, predicado que expresa que no existe ninguna
+	      arista de color $c(v)$ incidente en $v$.
+\end{itemize}
+
+Se introduce también el concepto de \emph{camino alternante} que 
+sera necesario para la demostración. Este concepto se refiere a un 
+camino maximal que alterna entre, a lo sumo, dos colores dados. Es 
+posible obsevar lo siguiente acerca de dichos caminos,
+\begin{enumerate}
+	\item Un camino alternante es un ciclo o un camino 
+	      simple.
+	\item Un par de colores y un vértice determinan un único 
+	      camino alternante (se permite que ambos colores sean iguales, 
+	      en cuyo caso la longitud del camino es a lo sumo 1).
+	\item Intercambiar los colores de las en un camino 
+	      alternante mantiene la coloración aceptable, dado que los 
+	      camino alternantes son maximales, lo cual permite intercambiar 
+	      los colores sin afectar el conjunto de colores en los vértices 
+	      extremos.
+\end{enumerate}
+
+Se hará referencia a $(\forall_{v \in V} acc(V))$ como \emph{(0)}, 
+y a \emph{(xy es la única arista no coloreada)} como \emph{(1)}.
+
+Por \emph{(2)} se referirá a la siguiente proposición. âra cualquier color $p$
+tal que el \emph{p-camino} es no vacío, sea $xs$ la primera arista de color $p$
+en el camino, y $l$ el último vértice de este camino, entonces,
+$c(l)=p \implies f(s)$.
+
+
+El algoritmo anterior se encarga de, dado un grafo donde todas las 
+aristas están coloreadas de manera aceptable y una única arista sin 
+colorear, devolver una coloración de dicho grafo donde todas las 
+aristas estan coloreadas de manera aceptable.
+
+El grafo que recibe el algoritmo cumple $(0)$, $(1)$ y
+$(\forall_{v \in V} f(v))$. Dado que $xy$ es la única arista no 
+coloreada y el grafo no tiene lazos, $x \neq y$. Como
+$(\forall_{v \in V} f(v))$, entonces se cumple $f(x)$, $f(y)$ y
+$(2)$, Luego se puede afirmar,
+\begin{equation*}
+	(0) \wedge (1) \wedge (2) \wedge
+	f(x) \wedge f(y) \wedge x \neq y
+\end{equation*}
+
+Si se entra al ciclo, es decir el \emph{c(y)-camino} termina en $y$,
+como $x \neq y$ es posible afirmar que el \emph{c(y)-camino} 
+comienza con una arista de color $c(y)$. De lo anterior se tiene 
+que existe un $z$ único tal que $xz$ tiene color $c(y)$, en este 
+caso es la primera arista del \emph{c(y)-camino}, dado que no 
+existen lazos, $x \neq z$. $f(z)$ se deriva de $(2)$ con $p=c(y)$,
+$s=z$, $l=y$. Se cumple también $y \neq z$, de lo contrario la 
+arista $xy$ tendría color $c(y)$, lo cual es imposible.
+
+Luego de darle a $xy$ color $c(y)$ y a $xz$ quitarle el color.
+Se desea obtener,
+\begin{multline*}
+	(xz \text{ es la única arista no coloreada}) \wedge
+	(xy \text{ tiene color } c(y)) \wedge \\
+	(0) \wedge (2) \wedge f(x) \wedge \neg f(y) \wedge f(z) \\
+\end{multline*}
+Los primeros dos términos de la expresión anterior son verdaderos 
+debido a que precisamente la intrucción que se ejecuta se encarga 
+de ello. Para los siguientes tres términos obsérvese que solo es 
+necesario analizar $x$, $y$, y $z$ dado que son los únicos 
+afectados por cambios de colores. Los colores incidentes en $x$ se 
+mantienen los mismos, luego $acc(x)$ y $f(x)$. Los colores 
+incidentes en $z$ disminuyen, luego tambien $acc(z)$ y $f(z)$. A 
+los colores incidentes en $y$ se agrega $c(y)$, como anteriormente
+$f(y)$ entonces se mantiene $acc(y)$ y se obtiene $\neg f(y)$. Para 
+probar que $(2)$ no cambia su veracidad consideremos dos casos.
+
+Si $p \neq c(y)$, obsérvese que la instrucción de colorear y remover
+color, mantiene el camino idéntico; en particular, si el camino es 
+no vacío, sus vértices $s$ y $l$ se mantienen los mismos. La no 
+variación de $l$ asegura la no variación de $c(l) \neq p$. Observe 
+que $f(z)$ se mantiene, dado que como el único vértice cuyo valor 
+de $f$ varía es $y$, y como $xs$ tiene color $p$, $xy$ no tiene 
+color, y no existen aristas múltiples, $x \neq y$.
+
+Si $p = c(y)$ obsérvese que el camino $x,z,\dots,y$ es reemplazado 
+por $x,y,\dots,z$, luego tendría que demostrarse $(2)$ para
+$p=c(y)$, $s=y$, $l=z$, es decir $f(y) \vee c(y) \neq c(z)$, de lo 
+cual ya se tenía anteriormente $c(y) \neq c(z)$ y dado que $c$ no 
+se modifica, esto se mantiene.
+
+Al llegar a la ejecución de la primera instrucción después del ciclo
+es posible garantizar que se cumple $(0)$, $(1)$, $f(x)$, $f(y)$ y que el
+\emph{c(y)-camino} no termina en $y$. Al intercambiar los colores del
+\emph{c(y)-camino}, se matiene $(0)$ por la \emph{propiedad 3} de los caminos 
+alternantes. Dado que el camino no termina en $y$, entonces luego de intercambiar 
+los colores del mismo, no se afecta $f(y)$, luego se se cumple $f(y)$. Si antes de 
+la ejecución de esta instrucción, en $x$ no incicdía $c(y)$ entonces esto se 
+mantiene, dado que el \emph{c(y)-camino} tendría longitud 0, no afectándose así la 
+coloración de las aristas; de lo contrario, si $c(y)$ incidía en $x$ entonces el 
+intercambio de colores cambia el color a esta arista por $c(x)$, por tanto ya $c(y)$ 
+no incidiría en $x$. Esta instrucción no afecta la coloración de la arista $xy$. Una 
+vez en este punto es posible asignarle color $c(y)$ a la arista $xy$, dado que como 
+se observó anteriormente, se cumple $f(y)$ y $c(y)$ no incide en $x$, se mantiene
+$(0)$. Luego, como era $xy$ la única arista sin colorear, al terminar la ejecución 
+del algoritmo se puede garantizar que todas las aristas fueron coloreadas de manera 
+aceptable.
+
+\begin{theorem}
+	El algoritmo anterior tiene costo $O(n)$.
+\end{theorem}
+
+\begin{proof}
+	Obsérvese que el costo del algoritmo anterior esta dado por el costo del ciclo.
+	En cada iteración de este, la cantidad de valores verdaderos que tiene el predicado $f$ disminuye en $1$. Luego de $n-1$ iteraciones, solo un vértice
+	evaluaría de verdadero en el predicado. Dado que se cumple en todo momento durante el ciclo que $f(x)$ es verdadero y se cumple \emph{(2)}, entonces en la n-ésima iteración, $\neg f(s)$ para $s$ primer vértice despues de $x$ en el \emph{c(y)-camino}, aplicando \emph{(2)} $c(l) \neq c(y) \implies l \neq y$. No cumpliendose así la condición de repetición del ciclo.
+\end{proof}
+
+\subsection{Steiner Tree}
+
+\begin{statement}
+	Dado un grafo no dirigido $G=(V,E,w)$ donde $w$ es una función
+	asigna un costo a cada arista, y un conjunto $S\subset V$. Se desea encontrar el árbol de menor costo que abarque todos los vértices de $S$.
+\end{statement}
+
+Dado un grafo no dirigido $G=(V,E,w)$ y un conjunto $S\subset V$. Considérese el grafo $G_1=(V_1,E_1,w_1)$ construído a partir de $G$ y $S$, de tal manera que $V_1=S$
+y, para cada $\{v_i,v_j\}\in E_1$, $w(\{v_i,v_j\})$ es igual al costo del camino menos costoso desde $v_i$ a $v_j$ en $G$.
+
+\bigskip
+\begin{tcolorbox}
+	\textbf{Algoritmo (Steiner Tree)}
+	\begin{enumerate}
+		\item Construya el grafo $G_1$ como se define anteriormente, a partir de $G$ y $S$.
+		\item Encuentre un árbol abarcador de costo mínimo, $T_1$, de $G_1$.
+		\item Construya el subgrafo, $G_s$ de $G$ reemplazando cada arista en $T_1$ por su correspondiente camino mas corto en $G$.
+		\item Encuentre un árbol abarcador de costo mínimo, $T_s$, de $G_s$.
+		\item Construya el Steiner Tree $T$ a partir de $T_s$, a partir de eliminar aristas en $T_s$ tal que toda hoja sea un vértice de $S$.
+	\end{enumerate}
+\end{tcolorbox}
+\bigskip
+
+Sea el grafo no dirigido $G=(V,E,w)$, y el conjunto de puntos 
+$S\subset V(G)$ la entrada del algoritmo anterior. Sea $W$ la el 
+costo del \emph{Steiner Tree}, $T$ producido por el algoritmo 
+anterior. Sea $W_{min}$, el costo total del \emph{Steiner Tree} 
+óptimo.
+
+\begin{lemma}
+	Sea $T$ un árbol con $m \ge 1$ aristas. Entonces, existe un 
+	ciclo en $T$, $u_0, u_1, \dots, u_{2m}$ donde cada $u_i$,
+	$1 \le i \le 2m$, es un vértice en $T$, tal que,
+	\renewcommand{\theenumi}{\roman{enumi}}
+	\begin{enumerate}
+		\item Toda arista de $T$ aparece exactamente dos veces en 
+		      el ciclo.
+		\item Toda hoja de $T$ aparece exactamente una vez en la 
+		      secuencia y si $u_i$, $u_j$ son dos hojas en el ciclo,
+		      con niguna otra hoja entre ellas, entonces,
+		      $u_i, u_{i+1}, \dots, u_j$ es un camino simple.
+	\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+	Se probará el lema anterior mediante inducción en $m$. Para 
+	$m=1$, sea $\{u_1, u_2\}$ la arista de $T$. Considere el ciclo
+	$u_1,u_2,u_1$, este satisface (i) y (ii) en el lema. Asuma que 
+	para $m=k$ el lema se cumple. Entonces para $m=k+1$, sea $v_p$ 
+	una hoja de $T$ y $\{v_p,v_q\}$ una arista incidente en $v_p$, 
+	considere el árbol $T'$ formado al eliminar la arista
+	$\{v_p,v_q\}$ y el vértice $v_p$ de $T$. $T'$ es un árbol de 
+	$k$ aristas, dado que $v_p$ era una hoja. Luego, por hipótesis 
+	de inducción existe el ciclo $u'_1,u'_2,\dots,u'_{2k}$ en $T'$ 
+	que satisface (i) y (ii). Es fácil ver que al reemplazar la 
+	primera ocurrencia de $v_q$ por $v_q,v_p,v_q$, se cumple el 
+	lema para $T$.
+\end{proof}
+
+\begin{theorem}
+	Sea el grafo no dirigido $G=(V,E,w)$, y el conjunto de puntos 
+	$S\subset V(G)$ la entrada del algoritmo anterior. Sea $W$ el 
+	costo del \emph{Steiner Tree} $T$, producido por el algoritmo 
+	anterior. Sea $W_{min}$, el costo total del \emph{Steiner Tree} 
+	óptimo $T_{min}$, y sea $l$ el número de hojas en $T_{min}$.
+	Entonces,
+	$$\frac{W}{W_{min}}
+	\le 2*\parenthize{1-\frac{1}{l}}
+	\le 2*\parenthize{1-\frac{1}{\abs{S}}}$$
+\end{theorem}
+
+\begin{proof}
+	Por el lema anterior, hay un ciclo $c$ en $T_{min}$ tal que por 
+	(i), toda arista de $T_{min}$ aparece exactamente dos veces en 
+	el ciclo y por (ii), toda hoja de $T_{min}$ aparece exactamente 
+	una vez en la secuencia y si $u_i$, $u_j$ son dos hojas
+	\emph{consecutivas} en el ciclo, entonces el subcamino de $u_i$ 
+	a $u_{i+1}$ es simple. Podría pensarse entonces en $c$ como la 
+	composición de $l$ subcaminos simples conectando una hoja a la 
+	siguiente. Eliminando el subcamino simple más largo de $c$ 
+	obtenemos un camino $p$ tal que, su distancia no es mayor que
+	$(1-\frac{1}{l})*w{c}$, dado que el subcamino eliminado es de 
+	longitud al menos $\frac{1}{l}$, como toda arista de $T_{min}$ 
+	aparece exactamente dos veces en $c$, y el camino eliminado no 
+	repite aristas, entonces en $p$ cada arista aparece al menos 
+	una vez.
+							
+	Sea $v_1,v_2,\dots,v_k$ los $k=\abs{S}$ vértices para los que 
+	se quiere formar el \emph{Steiner Tree}, en el orden en que 
+	aparecen en $p$. Se tiene entonces,
+	\begin{align*}
+		w(p) & \le \parenthize{1-\frac{1}{l}}*w(c)      \\
+		     & \le \parenthize{1-\frac{1}{l}}*2*W_{min} 
+	\end{align*}
+	Por otro lado, $w(p)$ es mayor o igual que el costo total de 
+	cualquier árbol abarcador de $G_1$, dado que $G_1$ esta formado 
+	por aristas entre los vértices $v_1,v_2,\dots,v_k$, todas con 
+	costo a lo sumo iguales al costo de los caminos entre $w_i$ y 
+	$w_j$ en $p$, luego,
+	\begin{align*}
+		W                 & \le w(T_S) 
+		\le w(G_S) \le w(T_1) \le w(p) \\
+		                  & \le        
+		\parenthize{1-\frac{1}{l}}*2*W_{min}  \\
+		\frac{W}{W_{min}} & \le        
+		\parenthize{1-\frac{1}{l}}*2*W_{min}  \\
+	\end{align*}
+\end{proof}
+
+\end{document}

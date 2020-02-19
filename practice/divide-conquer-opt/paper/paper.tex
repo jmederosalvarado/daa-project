@@ -1,0 +1,177 @@
+\documentclass[spanish]{llncs}
+
+\usepackage[utf8]{inputenc}
+
+\usepackage{amsmath}
+
+\usepackage{xcolor}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.97}
+
+\usepackage{minted}
+\usemintedstyle{friendly}
+\setminted {
+	linenos = true,
+	bgcolor = backcolour
+}
+
+\usepackage{dsfont}
+\newcommand*{\Z}{\mathds{Z}}
+
+\usepackage{hyperref}
+
+\begin{document}
+
+\title{Ordenando montículos}
+
+\author{Jorge Mederos}
+\authorrunning{J. Mederos}
+
+\institute{Universidad de La Habana}
+
+\maketitle
+
+\section{El Problema}
+
+Una compañía de minería extrae metal de los alrededores de un río.
+Las minas estan colocadas en $n$ puntos a lo largo del río, cada uno
+identificado por la distancia desde el cauce del río. En cada mina se
+mantiene un montículo de mineral extraído.
+
+Para recolectar el mineral, la compañía reagrupa los $n$ montículos en $k$
+de los puntos de mina, donde luego son recogidos por camiones.
+
+Para transportar los montículos, se utiliza una barca, que permite en la
+práctica cargar cualquier cantidad de mineral. La barca sale del comienzo del
+río y solo viaja en una dirección. Los montículos o bien son completamente movidos
+de punto o se mantienen en su mina. El costo de mover un montículo de peso $W$ desde
+un punto $X$ a un punto $Y$ es $W*(Y-X)$. El costo total de reagrupar es la suma del
+costo por cada movimiento.
+
+Dados los valores de $W_1, W_2, \dots, W_n$ y un entero $k$, diga el menor costo
+de reagrupar los montículos.
+
+\paragraph*{Fuente.} Este problema fue extraído del sitio 
+\href{https://onlinejudge.org/index.php?option=com_onlinejudge&Itemid=8&page=show_problem&problem=3969}{online judge}
+
+\section{Solucion}
+
+Definamos $c(i,j)$ como el menor costo de agrupar los montículos de las primeras $j$ minas
+en $j$ de ellas. Luego se obtendría la siguiente recuerrencia:
+\begin{align}
+	\label{eq:rec:c}
+	c(i,j)                          & =                          
+	\begin{cases}
+	w(1,j)                          & \text{ if $i = 1$}         \\
+	\min_{k<j}(c(i-1,k) + w(k+1,j)) & \text{ if $i > 1$}         \\
+	\end{cases}
+	\\
+	\label{eq:rec:w}
+	w(i,j)                          & = \sum_{k=i}^{j} W_k*(j-k) 
+\end{align}
+
+\begin{theorem}
+	La funcion $c(i,j)$ calcula el menor costo de agrupar los monticulos de
+	las primeras j minas en i de ellas.
+\end{theorem}
+
+\begin{proof}
+	$c(1,j)$ es calculada correctamente, dado que el menor costo posible para
+	reagrupar los $j$ primeros monticulos en una mina, es precisamente de trasladar
+	cada monticulos hasta la ultima mina. Es facil mostrar por inducción que si
+	$c(t,j)$ se calcula de manera correcta, entonces tambien lo hace $c(t+1,j)$.
+\end{proof}
+
+\inputminted{python}{basic.py}
+
+\section{Optimizando con Divide y Vencerás}
+
+La tecnica de \textbf{divide y vencerás}, ademas de otras muchas aplicaciones
+que posee, puede ser optimizada para optimizar la complejidad temporal de un
+algoritmo de programación dinamica, si este cumple ciertas propiedades.
+
+Una de las propiedades que tiene que cumplir un algoritmo de programación
+dinámica para ser optimizado con esta tecnica es que la recurrencia sea de
+la forma $dp(i,j) = \min_{k<j}(dp[i-1][k] + w(k+1,j))$ para alguna funcion
+de costo $w$.
+
+\begin{property}
+	\label{prop}
+	Sea $K(i,j)$ el valor $k$ para el cual $dp(i,j) = dp[i-1][k] + w(k+1,j)$,
+	para cualquier $i,j$ se cumple que $K(i,j) \le K(i,j+1)$, esto significa que
+	el óptimo $k$ es monótono en $j$ para un $i$ fijo.
+\end{property}
+
+Como se pudo apreciar en la seccion anterior, este tipo de recurrencias es posible
+calcularlas en $O(m*n^2)$, con esta tecnica el costo de calcular la recurrencia
+sería $O(m*n*log(n))$.
+
+El algoritmo para calcular $dp[i][j]$ para un $i$ fijo y todo $j$ se presenta a
+continuación.
+
+\inputminted{python}{optimization.py}
+
+Este algoritmo se aprovecha de la propiedad~\ref{prop} para en cada llamado
+recursivo calcular el nuevo intervalo en el que estan las posibles soluciones.
+Descomponiendo cada rango de $j$ en 2 intervalos que tienen longitud la mitad
+del original. Logrando asi un costo $O(n*log(n))$
+
+El algoritmo original luego de aplicarle esta optimizacion quedaría de la siguiente
+manera.
+
+\inputminted{python}{optimized.py}
+
+\subsection{Desigualdades cuadrangulares}
+
+\begin{definition}
+	\label{def:qi}
+	Sean $a,b,c,d \in \Z$, donde $a \le b \le c \le d$. $f(x,y)$ satisface
+	la desigualdad cuadrangular si:
+	\begin{equation*}
+		f(a,c) + f(b,d) \le f(a,d) + f(b,c)
+	\end{equation*}
+	En lo adelante se hará referencia a la desigualdad cuadrangular como QI.
+\end{definition}
+
+\begin{theorem}
+	Sea $K(i,j)$ el menor $k$ tal que $dp(i,j) = dp(i,k-1) + c(k,j)$.
+	Si $K$ cumple $QI$ entonces $K(i,j) < K(i,j')$ para $j' >= j$.
+\end{theorem}
+
+\begin{proof}
+	Para $x=K(s,i)$, $y=K(s,j)$ tal que $x \le j$, $y \le i$ y $x \neq y$
+	pruebese que:
+	\begin{equation}
+		w(x,i) + w(y,j) < w(x,j) + w(y,i)
+	\end{equation}
+
+	$dp(s,i) = dp(s-1,x) + w(x,i)$ $\implies$ $w(x,i) = dp(s,i) - dp(s-1,x)$,
+	analogamente $w(y,j) = dp(s,j) - dp(s-1,y)$, por tanto basta mostrar que						
+	\begin{equation}
+		\begin{split}
+			dp(s,i) - dp(s-1,x) + dp(s,j) - dp(s-1,y) &< w(x,j) + w(y,i) \\
+			dp(s,i) + dp(s,j) &< dp(s-1,x) + w(x,j) + dp(s-1,y) + w(y,i)
+		\end{split}
+	\end{equation}
+	
+	Por definición, $dp(s,j) \le dp(s-1,x) + w(x,j)$ y
+	$dp(s,i) \le dp(s-1,y) + w(y,i)$. Sin embargo, note que solo
+	una de esta igualdades se sostiene. Si la primera es verdadera,
+	entonces $x>y$, dado que si $x < y$ entonces $y=K(s,j)$ ya no es el menor
+	valor tal que $dp(s,j) \le dp(s-1,x) + w(x,j)$. De la misma manera si la
+	segunda fuera verdadera, se tendría $x<y$, lo cual contradice la primera.
+	Luego, se obtiene:
+	\begin{equation*}
+		dp(s,j)+dp(s,i)<dp(s-1,x)+w(x,j)+dp(s-1,y)+w(y,i)
+	\end{equation*}
+	como es deseado.
+
+	Supongase entonces que para $i<j$, $K(s,i)>K(s,j)$. Sea $x=K(s,i)$ y 
+	$y=K(s,j)$. Por tanto, como $y < x < i < j$, por lo demostrado anteriormente
+	se obtiene $w(x,i) + w(y,j) < w(x,j) + w(y,i)$. Lo cual contradice QI. Luego
+	para $i<j$, $K(s,i) \le K(s,j)$.
+\end{proof}
+
+Es facil verificar que $w$~\eqref{eq:rec:w} cumple QI, luego $dp$ puede ser
+optimizada mediante la tecnica de \textbf{divide y vencerás} antes vista.
+
+\end{document}

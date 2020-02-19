@@ -1,0 +1,329 @@
+\documentclass[../np-approximations.tex]{subfiles}
+ 
+\begin{document}
+
+\section{Programación Linear}
+
+La programación linear ataca el problema de optimizar una función 
+linear, sujeta a desigualdades lineares como restricciones. La 
+función que se optimiza es llamada función objetivo. Considere el 
+siguiente ejemplo:
+\begin{align*}
+	\text{minimizar}\quad & 7x_1 + x2 + 5x_3        \\
+	\text{sujeto a}\quad  & x_1 - x_2 + 3x_3 \ge 10 \\
+	                      & 5x_1 + 2x_2 - x_3 \ge 6 \\
+	                      & x_1, x_2, x_3 \ge 0     \\
+\end{align*}
+
+Note que todas las restricciones son del tipo \emph{mayor o igual}, 
+y todas las variables están restringidas a ser no negativas. Esta 
+es la forma estándar de un programa de minimización.
+
+Las soluciones que satisfacen las restricciones son llamadas
+\emph{factibles}. Sea $z$ el valor óptimo del programa linear 
+formulado anteriormente. Cualquier solución factible, es una cota 
+superior a $z$. Para establecer una cota superior, note que es 
+posible utilizar las restricciones de la siguiente manera,
+$$7x_1 + x2 + 5x_3 \ge
+(x_1 - x_2 + 3x_3) + (5x_1 + 2x_2 - x_3) \ge 16$$
+Note que el miembro derecho de la inecuación es una cota inferior 
+para el óptimo. Esta cota puiera mejorarse si multiplicaramos cada 
+restricción por un número positivo, manteniendo la desigualdad con 
+la función objetivo, es decir encontrar $y_1$ y $y_2$ tales que,
+$$7x_1 + x2 + 5x_3 \ge
+y_1(x_1 - x_2 + 3x_3) + y_2(5x_1 + 2x_2 - x_3) \ge 10y_1 + 6y_2$$
+Note que se desea encontrar ahora los mayores $y_1$,$y_2$, que 
+mantengan la desigualdad. Esto duriosamente, puede ser expresado 
+como un programa linear:
+\begin{align*}
+	\text{maximizar}\quad & 10x_1 + 6y2       \\
+	\text{sujeto a}\quad  & y_1 + 5y_2  \le 7 \\
+	                      & -y_1 + 2x_2 \le 1 \\
+	                      & 3y_1 - x_2  \le 5 \\
+	                      & y_1, y_2    \ge 0 \\
+\end{align*}
+Denote \emph{Dual} a este programa y \emph{Primal} al primero. De 
+esta manera cualquier solución factible al Dual, es una cota 
+inferior al óptimo. Observe que el reverso también es verdadero, 
+cualquier solución factible al Primal es una cota superior al Dual.
+Es posible notar también que el óptimo de ambos programas es el 
+mismo. El ejemplo anterior es un caso particular del siguiente teorema:
+
+Considere el siguiente problema de minimización, como programa primal, donde $a_{ij}$, $b_i$ y $c_j$ son números racionales,
+\begin{align*}
+	\text{minimizar}\quad & \sum_{j=1}^n c_jx_j            \\
+	\text{sujeto a}\quad  & \sum_{j=1}^n a_{ij}x_j \ge b_i 
+	& i=1,2,\dots,n \\
+	  & x_j \ge 0 & j=1,2,\dots,n 
+\end{align*}
+Introduciendo variables $y_i$ para la i-ésima desigualdad, obtenemos el siguiente dual:
+\begin{align*}
+	\text{maximizar}\quad & \sum_{i=1}^m b_jy_j            \\
+	\text{sujeto a}\quad  & \sum_{i=1}^m a_{ij}y_i \le c_j 
+	& j=1,2,\dots,n \\
+	  & y_i \ge 0 & i=1,2,\dots,n 
+\end{align*}
+
+\begin{theorem}[LP-Duality]
+	El programa \emph{primal} tiene óptimo finito si y solo si el \emph{dual} tiene óptimo finito. Además, si
+	$x=(x_1,x_2,\dots,x_n)$ y $y=(y_1,y_2,\dots,y_m)$ son soluciones óptimas para el \emph{primal} y el \emph{dual} respectivamente, entonces:
+	$$\sum_{j=1}^n c_jx_j = \sum_{i=1}^m b_iy_i$$
+\end{theorem}
+
+\begin{theorem}[Weak LP-Duality]
+	Si $x=(x_1,x_2,\dots,x_n)$ y $y=(y_1,y_2,\dots,y_m)$ son soluciones factibles para el \emph{primal} y el \emph{dual} respectivamente, entonces:
+	\begin{equation}
+		\label{eq:weak-lp-duality}
+		\sum_{j=1}^n c_jx_j \ge \sum_{i=1}^m b_i y_i
+	\end{equation}
+\end{theorem}
+
+\begin{proof}
+	Dado que $y$ es un dual factible y los $x_j$ son no negativos,
+	\begin{equation}
+		\label{eq:weak-lp-duality:1}
+		\sum_{j=1}^n c_j x_j \ge \sum_{j=1}^n\parenthize{\sum_{i=1}^m a_{ij}y_i} x_j
+	\end{equation}
+	De manera similar, dado que $x$ es factible en el primal y las $y_i$ son no negativas,
+	\begin{equation}
+		\label{eq:weak-lp-duality:2}
+		\sum_{i=1}^m\parenthize{\sum_{j=1}^n a_{ij}x_j} y_i \ge \sum_{i=1}^m b_i y_i
+	\end{equation}
+	El teorema se obtiene de observar que,
+	\begin{equation*}
+		\sum_{j=1}^n\parenthize{\sum_{i=1}^m a_{ij}y_i} x_j =
+		\sum_{i=1}^m\parenthize{\sum_{j=1}^n a_{ij}x_j} y_i
+	\end{equation*}
+																			
+\end{proof}
+
+Observe que por el teorema de \emph{LP-Duality}, $x$ y $y$ son ambas soluciones óptimas si y solo si \eqref{eq:weak-lp-duality} se sostiene con igualdad. Lo cual solo ocurre si y solo si \eqref{eq:weak-lp-duality:1} y \eqref{eq:weak-lp-duality:2} se sostienen ambas con igualdad. Luego, es obtenido el siguiente resultado acerca de la estructura de las soluciones óptimas.
+
+\begin{theorem}[Complementary Slackness]
+	Sean $x$,$y$ soluciones factibles al primal y al dual respectivamente. Entonces, $x$ y $y$ son ambos óptimos si y solo si se cumplen las condiciones siguientes:
+	\begin{itemize}
+		\item \textbf{Primal Complementary Slackness conditions:}
+		      		      		      		      		      		      		      		      		      		      		
+		      Para todo $i\le j\le n$: $x_j=0$, o
+		      $\sum_{i=1}^m a_{ij}y_i = c_j$
+		\item \textbf{Dual Complementary Slackness conditions:}
+		      		      		      		      		      		      		      		      		      			
+		      Para todo $i\le i\le m$: $y_i=0$, o
+		      $\sum_{j=1}^n a_{ij}x_j = b_i$
+	\end{itemize}
+\end{theorem}
+
+Muchos son los problemas que pueden ser formulados como una instancia de programación linear. En particular, varios problemas NP-Completos pueden ser formulados como un programa de este tipo, donde se requiere que las soluciones sean enteras, a esta formulación se le llama programación entera (\emph{integer programming}), es de esperarse que resolver el problema bajo esta nueva restricción en tiempo polinomial es imposible, al menos que $P=NP$. Luego es común eliminar esta restricción al problema, para así resolver un problema de programación linear clásico, y luego utilizar las soluciones fraccionarias del mismo, para obtener mediante alguna técnica, una aproximación de la solución entera. Al proceso de eliminar la restriccion entera a un \emph{programa entero} se le llamará \emph{relajación}.
+
+\subsection{Set Cover via Dual Fitting}
+
+Analísese una vez más el problema de Set Cover, que fue introducido previamente. Se realizará un análisis de la solución greedy obtenida, utilizando la tecnica de ajustar el dual \emph{dual-fitting}. Formúlese el problema como un \emph{integer program} de la siguiente manera. Asígnese una variable $x_s$ a cada conjunto $s\in S$, la cual tendrá permitidos valores de 0 ó 1. Esta variable tendrá valor 1 si el conjunto $s$ es elegido en el cubrimiento. La restricción será que cada elemento sea cubierto po al menos un conjunto. Luego, se obtiene,
+\begin{equation}
+	\label{eq:df-set-cover:primal}
+	\begin{split}
+		\text{minimizar}\quad & \sum_{s\in S} c(s)x_s \\
+		\text{sujeto a}\quad  & \sum_{s: e\in s} x_s \ge 1,\quad e\in U \\
+		& x_s \in \{0,1\},\quad s\in S
+	\end{split}
+\end{equation}
+
+La siguiente relajación de la formulación anterior puede ser obtenida,
+\begin{equation}
+	\label{eq:df-set-cover:relaxed}
+	\begin{split}
+		\text{minimizar}\quad & \sum_{s\in S} c(s)x_s \\
+		\text{sujeto a}\quad  & \sum_{s: e\in s} x_s \ge 1,\quad e\in U \\
+		& x_s \ge 0,\quad s\in S
+	\end{split}
+\end{equation}
+
+Obsérvese que las soluciones factibles de la formulación entera, es un subconjunto de las soluciones factibles de su relajación, luego el óptimo de la relajación es menor o igual que el óptimo del \emph{programa entero}.
+
+Introduciendo una variable $y_e$ para cada elemento $e\in U$, se obtiene el siguiente dual.
+\begin{equation}
+	\label{eq:df-set-cover:dual}
+	\begin{split}
+		\text{maximizar}\quad & \sum_{e\in U} y_e \\
+		\text{sujeto a}\quad  & \sum_{e: e\in s} y_e \le c(s),\quad s\in S \\
+		& y_e \ge 0,\quad e\in U
+	\end{split}
+\end{equation}
+
+Una idea intuitiva de lo que podría significar el dual~\eqref{eq:df-set-cover:dual} es que está empacando \emph{cosas} en elementos, sujeto a que ningún conjunto está por encima de su capacidad, en este caso, su costo. Este tipo de problemas se llaman problemas de \emph{covering-packing}.
+
+El algoritmo greedy utilizado en secciones anteriores define un precio $price(e)$ para cada elemento $e$. Obsérvese si se utiliza $y_e = price(e)$, entonces esta solución para el dual \emph{logra pagar} por la solución elegida por el algoritmo, es decir es la solución elegida por el algoritmo es menos costosa que esta solución para el dual, sin embargo esta solución no es factible para el dual. Sin embargo es posible encontrar una solución factible a partir de truncar esta.
+
+\begin{lemma}
+	El vector $y$ tal que $y_e = \frac{price(e)}{H_n}$, es una solución factible del dual.
+\end{lemma}
+
+\begin{proof}
+	Se necesita mostrar que ningún conjunto está por encima de su capacidad en la solución $y$. Considérese un conjunto $s \in S$ que consista de $k$ elementos. Enumere dichos elementos en el orden en que son cubiertos por el algoritmo, desempatando arbitrariamente, dígase $e_1,\dots,e_k$.
+														
+	Considere la iteración en la cual el algoritmo cubre el elemento $e_i$. En este punto, $s$ contiene al menos $k-i+1$ elementos sin cubrir. Luego que en esta iteración $s$ podría cubrir a $e_i$ con un costo promedio de a lo sumo $c(s)/(k-i+1)$. Dado que el algoritmo escoge el conjunto que menor costo promedio tiene, $price(e_i)\le c(s)/(k-i+1)$. Por tanto,
+	\begin{equation*}
+		y_{e_i} \le \frac{1}{H_n}*\frac{c(s)}{k-i+1}
+	\end{equation*}
+													
+	Sumando todos los elementos de $s$, se obtiene,
+	\begin{equation*}
+		\sum_{i=1}^k y_{e_i} \le \frac{c(s)}{H_n}*
+		\parenthize{\frac{1}{k} + \frac{1}{k+1}+\dots+\frac{1}{1}}=
+		\frac{H_k}{H_n}*c(s) \le c(s)
+	\end{equation*}
+	Luego $y$ es una solución viable para el dual.
+														
+\end{proof}
+
+\begin{theorem}
+	El factor de aproximación del algoritmo greedy para el cubrimiento de conjunto es de $H_n$.
+\end{theorem}
+
+\begin{proof}
+	El costo del cubrimiento escogido es
+	\begin{equation*}
+		\sum_{e\in U} price(e) = H_n\parenthize{\sum_{e\in U}y_e}
+		\le H_n*OPT_f\le H_n*OPT
+	\end{equation*}
+	donde la primera desigualdad representa el hecho de que $y$ sea factible, y $OPT_f$ es el óptimo de la relajación de la formulación entera.
+												
+\end{proof}
+
+Dada la relajación anterior de la formulación del set cover. Es posible convertir la solución óptima fraccionaria obtenida en una solución entera redondeando los valores de la solución obtenida. En este caso se convertirán en $1$ todos aquellos valores por encima de $1/f$, y en $0$ los restantes, se donta por $f$ la frecuencia del elemento más frecuente entre los conjuntos.
+
+\begin{theorem}
+	El proceso anteriormente descrito, logra un factor de aproximación de $f$ para el problema de \emph{Set Cover}.
+\end{theorem}
+
+\begin{proof}
+	Sea $C$ la colección de conjuntos escogida. Sea $e$ un elemento del conjunto $U$. Dado que $e$ aparece en a lo sumo $f$ conjuntos, uno de estos conjuntos, dígase $t$ debe ser escogido con $x_t\ge 1/f$ (de lo contrario no se cumpliría la restricción para dicho elemento), luego este conjunto es seleccionado en el proceso anterior, de manera que $e$ es cubierto. Luego $C$ es un cubrimiento válido. El proceso de redondeo incrementa $x_s$ en un factor de a lo sumo $f$. Luego el costo de $C$ es a lo sumo $f$ veces el costo del cubrimiento fraccional óptimo. Luego,
+	\begin{equation*}
+		OPT_f \le OPT \le c(C) \le f*OPT_f
+	\end{equation*}
+												
+\end{proof}
+
+\subsection{Primal-Dual Schema}
+
+Considérese el siguiente programa primal, escrito de la forma estándar,
+\begin{equation*}
+	\begin{split}
+		\text{minimizar}\quad & \sum_{j=1}^n c_j x_j \\
+		\text{sujeto a}\quad  & \sum_{j=1}^n a_{ij}x_j \ge b_i, \quad i=1,\dots,m \\
+		& x_j \ge 0,\quad j=1,\dots,m 
+	\end{split}
+\end{equation*}
+su dual sería,
+\begin{equation*}
+	\begin{split}
+		\text{maximizar}\quad & \sum_{i=1}^m b_i y_i \\
+		\text{sujeto a}\quad  & \sum_{i=1}^m a_{ij}y_i \ge c_j, \quad j=1,\dots,m \\
+		& y_i \ge 0,\quad i=1,\dots,n
+	\end{split}
+\end{equation*}
+
+Es posible relajar las condiciones de \emph{Complementary Slackness} de la siguiente manera.
+\begin{itemize}
+	\item \textbf{Primal Complementary Slackness conditions:}
+	      	      	      	      	      	      	      	      
+	      Sea $\alpha \ge 1$
+	      Para todo $i\le j\le n$: $x_j=0$, o
+	      $c_j/\alpha \le \sum_{i=1}^m a_{ij}y_i \le c_j$
+	\item \textbf{Dual Complementary Slackness conditions:}
+	      	      	      	      	      	      	      	      
+	      Sea $\beta \ge 1$
+	      Para todo $i\le i\le m$: $y_i=0$, o
+	      $b_i \le \sum_{j=1}^n a_{ij}x_j \le \beta b_i$
+\end{itemize}
+
+\begin{theorem}
+	\label{theorem:relaxed-cs}
+	Si $x$ y $y$ son soluciones factibles del primal y el dual respectivamente y satisfacen las condiciones planteadas anteriormente, entonces,
+	\begin{equation*}
+		\sum_{j=1}^n c_j x_j \le \alpha \beta \sum_{i=1}^m b_i y_i
+	\end{equation*}
+\end{theorem}
+
+\begin{proof}
+	Asuma que la variable $y_i$ del dual posee una cantidad de \emph{dinero}, la cual es $\alpha \beta b_i y_i$. Luego, el sistema dual completo \emph{vale} lo que indica el miembro derecho de la inecuación anterior. El \emph{costo} de la solución primal es indicado por el miembro izquierdo.
+						
+	Las variables del dual se dirán que pagan por las variables $x_i$ del primal de la siguiente manera, $y_i$ paga $\alpha y_i a_{ij} x_j$ por la variable $x_j$. La cantidad total pagado por $y_i$ sería entonces,
+	\begin{equation*}
+		\alpha y_i\sum_{j=1}^n a_{ij}x_j \le \alpha\beta b_i y_i
+	\end{equation*}
+	donde la inecuación se deriva de la condición relajada del dual para \emph{Complementary Slackness}. Luego la cantidad de dinero pagado por $y_i$ es menor que la cantidad de dinero total que este tiene.
+					
+	La cantidad de dinero pagado por $x_j$ es,
+	\begin{equation*}
+		\alpha x_j \sum_{i=1}^m a_{ij}y_i \ge c_j x_j
+	\end{equation*}
+	donde la inecuación se obtiene de la condición relajada del primal para \emph{Complementary Slackness}. Luego,
+	\begin{align*}
+		\sum_{j=1}^n c_j x_j & \le \sum_{j=1}^n \alpha x_j \sum_{i=1}^m a_{ij} y_i \\
+		                     & \le \sum_{j=1}^n \sum_{i=1}^m \alpha x_j a_{ij} y_i \\
+		                     & \le \sum_{i=1}^m \alpha y_i \sum_{j=1}^n a_{ij} x_j \\
+		\sum_{j=1}^n c_j x_j & \le \alpha \beta \sum_{i=1}^m b_i y_i               \\
+	\end{align*}
+						
+\end{proof}
+
+Considérese entonces un algoritmo que opere de la seguiente manera. Comienza con un par de soluciones $x$ y $y$, para el primal y el dual respectivamente, donde la solución $x$ no es factible y la solución $y$ si lo es. Iterativamente mejora la factibilidad de $x$ y la optimalidad de $y$, asegurándose de obtener al final una solución primal factible, y que se cumpla con las condiciones de $\alpha$ y $\beta$ planteadas anteriormente. La solución primal siempre es modificada en una cantidad entera, garantizando que al final también lo sea. Finalmente obsérvese que,
+\begin{equation*}
+	\sum_{i=1}^m b_i y_i \le OPT \le
+	\sum_{j=1}^n c_j x_j \le \alpha \beta \sum_{i=1}^m b_i y_i
+\end{equation*}
+luego, la solución obtenida tiene un factor de aproximación de $\alpha \beta$.
+
+\subsection{Set Cover via Primal-Dual Schema}
+
+Se utilizará la formulación relajada de programación linear de Set Cover dada a inicios 
+de la sección. El objetivo es obtener un algoritmo con factor de aproximaciñon $f$. Para 
+ello se han elegido $\alpha=1$ y $\beta=f$.
+
+El conjunto $s$ se dirá \emph{ajustado} si $\sum_{e \in s} y_e = c(s)$.
+
+Las condiciones de \emph{complementary slackness} son:
+\begin{itemize}
+	\item \textbf{Condiciones del Primal:}
+
+	      \begin{equation*}
+	      	\forall_{s\in S}:  x_s \neq 0 \implies \sum_{e \in s} y_e = c(s)
+		  \end{equation*}
+		  Esta condición establecería que solo se puede escoger un conjunto si este es ajustado.
+	\item \textbf{Condiciones del Dual:}
+
+	      \begin{equation*}
+	      	\forall_{e\in U}: y_e \neq 0 \implies \sum_{s: e \in s} x_s \le f
+		  \end{equation*}
+		  Observese que dado que solo daremos soluciones de $0$ o $1$ para $x$, estas condiciones son equivalentes a que cada elemento que sea cubierto al menos una vez, sea cubierto no más de $f$ veces. Lo cual claramente se cumple para todo elemento, dado que $f$ es la frecuencia máxima de un elemento.
+\end{itemize}
+
+\bigskip
+\begin{tcolorbox}
+	\textbf{Algoritmo (Set Cover Primal-Dual)}
+	\begin{enumerate}
+		\item $x \leftarrow 0$, $t \leftarrow 0$.
+		\item Hasta que todos los elementos sean cubiertos:
+			\begin{enumerate}
+				\item Elija un elemento sin cubrir, digase $e$.
+				\item Incremente $e$ hasta que algún conjunto sea ajustado.
+				\item Elija todos los conjuntos ajustados y actualice $x$.
+				\item Declare todos los elementos de dichos conjuntos como
+				\emph{cubiertos}.
+			\end{enumerate}
+		\item Devuelva el cubrimiento $x$.
+	\end{enumerate}
+\end{tcolorbox}
+\bigskip
+
+\begin{theorem}
+	El algoritmo anterior logra un factor de aproximación de $f$.
+\end{theorem}
+
+\begin{proof}
+	Claramente al final de la ejecución algoritmo no habrá elementos sin cubrir, dado que iteramos por cada elemento $e$ incrementando $y_e$ hasta cubrirlo con un conjunto ajustado. Por cada elemento $e$ incrementamos $y_e$ en $1$, luego esto genera un aumento de exactamente $1$ en $\sum_{i \in s} y_i$ para todo $s$ tal que $e \in s$, lo cual dado que $y$ comienza en $0$ siempre logra ajustar algún conjunto.
+	De lo anterior se tiene que la soluciones del primal y el dual son factibles, además satisfacen las condiciones de complementary slackness relajado para $\alpha=1$ y $\beta=f$, luego por el teorema~\ref{theorem:relaxed-cs}
+	
+\end{proof}
+
+\end{document}

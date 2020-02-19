@@ -1,0 +1,106 @@
+\documentclass[spanish]{llncs}
+
+\usepackage[utf8]{inputenc}
+
+\usepackage{amsmath}
+
+\usepackage{xcolor}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.97}
+
+\usepackage{minted}
+\usemintedstyle{friendly}
+\setminted {
+	linenos = true,
+	bgcolor = backcolour
+}
+
+\usepackage{dsfont}
+\newcommand*{\Z}{\mathds{Z}}
+
+\begin{document}
+
+\title{K-Agrupamiento de espaciamiento maximo}
+
+\author{Jorge Mederos}
+\authorrunning{J. Mederos}
+
+\institute{Universidad de La Habana}
+
+\maketitle
+
+\section{El Problema}
+
+\paragraph*{Fuente.} Este problema fue extraído del libro \emph{Algorithm Design}
+de los autores \emph{Jon Kleinberg} y \emph{Eva Tardos} en el \emph{epígrafe 4.7}.
+
+Suponga que nos son dados un conjunto $U$ de $n$ objetos, etiquetados
+$p_1$, $p_2$, $\dots$, $p_n$. Para cada par, $p_i$ y $p_j$, tenemos una
+distancia numerica $d(p_i,p_j)$ que cumple:
+\begin{enumerate}
+	\item $d(p_i,p_i) = 0$
+	\item $d(p_i,p_j)>0$ para $p_i \neq p_j$
+	\item $d(p_i,p_j) = d(p_j,p_i)$
+\end{enumerate}
+
+Suponga que buscamos dividir los objetos de $U$ en $k$ grupos, para
+un parámetro $k$. Decimos que un \emph{k-agrupamiento} de $U$ es una particion
+de $U$ en $k$ conjuntos no vacios. Definimos el espaciamiento de un
+\emph{k-agrupamiento} como la menor distancia entre cualquier par de puntos
+de grupos diferentes. Se desea encontrar el \emph{k-agrupamiento} de espaciamiento
+maximo.
+
+\section{Solución}
+
+Para encontrar el agrupamiento de espaciamiento maximo, consideramos un grafo
+que tiene como vertices los elementos de $U$. Las componentes conexas seran los
+grupos, y uniremos los puntos cercanos lo mas rapido posible (de esta manera,
+no terminan en grupos diferentes elementos muy cercanos entre ellos). Luego,
+en cada iteración pondremos una arista en el grafo que una el par de vertices
+mas cercanos (si estos no estan ya en la misma componente conexa). Detendremos
+nuestro algoritmo cuando tengamos $k$ componentes conexas.
+
+Note que la idea anterior es muy similar al algoritmo de Kruskal para hallar el
+árbol abarcador de costo minimo de un grafo. El algoritmo anterior es equivalente
+a ejecutar el algoritmo de Kruskal sobre un grafo $G$ definido sobre $U$, que tiene
+una arista de costo $d(p_i,p_j)$ entre cada par de vertices $p_i,p_j$. La unica
+diferencia es que este es detenido luego de tener $k$ componentes conexas dado que
+se busca un \emph{k-agrupamiento}. Es decir no se añaden las $k-1$ ultimas aristas
+que añade el algoritmo de Kruskal.
+
+\inputminted{python}{code.py}
+
+
+\begin{theorem}
+	Las componentes conexas $C_1,C_2,\dots,C_k$ formadas de eliminar
+	las $k-1$ aristas mas costosas del árbol abarcador de costo minimo
+	creado por el algoritmo de Kruskal, constituyen un \emph{k-agrupamiento}
+	de espaciamiento maximo.
+\end{theorem}
+
+\begin{proof}
+	Denotese por \emph{K} el arbol abarcador de costo minimo que devuelve
+	el algoritmo de Kruskal y por \emph{C} el agrupamiento $C_1,C_2,\dots,C_k$.
+	El espaciamiento de \emph{C} es precisamente la longitud $d^*$ de la
+	\emph{k-1} arista mas costosa de \emph{K}, esta es la proxima arista que
+	hubiera añadido el algoritmo de Kruskal de no haber sido detenido.
+
+	Considerese otro \emph{k-agrupamiento} $C'$, que particiona $U$ en conjuntos
+	no vacios $C'_1,C'_2,\dots,C'_k$. Debe probarse que el espaciamiento de $C'$
+	es a lo sumo $d^*$.
+
+	Dado que los agrupamientos son diferentes, debe ser que hay un par de puntos
+	$p_i,p_j \in C_r$ y $p_i \in C'_s$, $p_j \in C'_t$ con $C'_s \neq C'_t$.
+
+	Dado que $p_i$ y $p_j$ pertenecen a la misma componente $C_r$, debe ser que el
+	algoritmo de Kruskal añadio las aristas de un camino $P$ de $p_i$ a $p_j$ antes
+	de ser detenido. En particular, esto significa que cada arista en $P$ tiene a lo
+	sumo longitud $d^*$. Ahora, se conoce que $p_i \in C'_s$ pero $p_j \notin C'_s$;
+	sea $p'$ la primera arista de $P$ que no pertenece a $C'_s$, y sea $p$ el nodo
+	de $P$ que viene justo antes de $p'$. Como se expresó anteriormente,
+	$d(p,p') \le d^*$, dado que la arista $(p,p')$ fue añadida por el algoritmo
+	de Kruskal. Pero $p$ y $p'$ pertenecen a diferentes conjuntos en el agrupamiento
+	$C'$, y por tanto el espaciamiento de $C'$ es a lo sumo $d(p,p') \le d^*$. Con esto
+	queda demostrado el teorema anterior.
+\end{proof}
+
+\end{document}
